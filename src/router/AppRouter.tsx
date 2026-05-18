@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { useEffect } from "react";
+import { useAuthStore } from "../store/useAuthStore";
 
 // Auth
 import { LoginPage } from "../features/auth/pages/LoginPage";
@@ -19,11 +21,22 @@ import { ProfilePage } from "../features/profile/pages/ProfilePage";
 
 import { Navbar } from "../shared/components/Navbar";
 
-export const AppRouter = () => {
+// Componente interno que inicializa auth y renderiza rutas
+const RouterContent = () => {
+  const { fetchCurrentUser } = useAuthStore();
+
+  // Al montar, intenta cargar el usuario actual desde el backend
+  useEffect(() => {
+    fetchCurrentUser().catch(() => {
+      // Si falla, el usuario simplemente no estará autenticado
+      // y será redirigido al login por ProtectedRoute
+    });
+  }, [fetchCurrentUser]);
+
   return (
-    <BrowserRouter>
+    <>
       <Navbar />
-      <main>
+      <main className="pt-24 md:pt-40 px-4">
         <Routes>
           {/* ─── Públicas ─────────────────────────────────────────── */}
           <Route path="/login" element={<LoginPage />} />
@@ -57,6 +70,14 @@ export const AppRouter = () => {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
+    </>
+  );
+};
+
+export const AppRouter = () => {
+  return (
+    <BrowserRouter>
+      <RouterContent />
     </BrowserRouter>
   );
 };

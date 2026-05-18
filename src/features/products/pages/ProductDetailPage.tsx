@@ -23,7 +23,7 @@ export const ProductDetailPage: React.FC = () => {
   if (!product) return <ErrorState message="El producto no existe." />;
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* BOTÓN VOLVER: Uso navigate(-1) para volver a la página anterior en el historial. */}
       <Button 
