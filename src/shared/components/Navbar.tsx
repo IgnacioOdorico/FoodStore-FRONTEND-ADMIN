@@ -30,8 +30,8 @@ export const Navbar: React.FC = () => {
           {/* MENÚ SEGÚN ROL */}
           <div className="flex items-center gap-1 p-1 bg-black/10 rounded-2xl border-2 border-white/5 backdrop-blur-md">
 
-            {/* admin + employee ven el catálogo */}
-            {hasRole('admin', 'employee') && (
+            {/* admin + stock + pedidos ven el catálogo */}
+            {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
               <>
                 <NavItem to="/dashboard"    icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
                 <NavItem to="/products"     icon={<ShoppingBasket className="w-4 h-4" />}  label="Productos" />
@@ -41,12 +41,12 @@ export const Navbar: React.FC = () => {
             )}
 
             {/* solo admin ve gestión de usuarios */}
-            {hasRole('admin') && (
+            {hasRole('ADMIN') && (
               <NavItem to="/admin/users" icon={<Users className="w-4 h-4" />} label="Usuarios" />
             )}
 
             {/* client ve sus pedidos */}
-            {hasRole('client') && (
+            {hasRole('CLIENT') && (
               <NavItem to="/orders" icon={<ShoppingCart className="w-4 h-4" />} label="Mis Pedidos" />
             )}
 
@@ -57,7 +57,7 @@ export const Navbar: React.FC = () => {
           {/* USUARIO + LOGOUT */}
           <div className="flex items-center gap-3">
             <span className="text-white/70 text-sm font-semibold">
-              {user.name} <span className="text-white/40">({user.role})</span>
+              {user.nombre} {user.apellido} <span className="text-white/40">({user.roles.join(', ')})</span>
             </span>
             <button
               onClick={handleLogout}

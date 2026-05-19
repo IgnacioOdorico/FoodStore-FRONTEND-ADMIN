@@ -1,8 +1,11 @@
-export type IRole = "admin" | "employee" | "client"
+export type IRole = "ADMIN" | "STOCK" | "PEDIDOS" | "CLIENT"
 
 export interface IUser {
     id: number
-    name: string
+    nombre: string
+    apellido: string
     email: string
-    role: IRole
+    celular: string | null
+    roles: IRole[]
+    created_at: string
 }

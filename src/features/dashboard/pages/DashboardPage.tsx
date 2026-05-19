@@ -6,7 +6,7 @@ export const DashboardPage = () => {
     <div>
       <h1>Dashboard</h1>
       <p>
-        Bienvenido {user?.name} con rol: {user?.role}
+        Bienvenido {user?.nombre} {user?.apellido} — Roles: {user?.roles.join(', ')}
       </p>
     </div>
   );

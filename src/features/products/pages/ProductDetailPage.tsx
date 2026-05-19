@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { productsService } from '../services/products';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
 import { Button } from '../../../shared/ui/Button';
-import { ArrowLeft, ShoppingCart, Package, Info, Tags, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Info, Tags, AlertTriangle } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
   // useParams: Esta es la clave. Saca el 'id' de la URL (/products/1 -> id = 1).

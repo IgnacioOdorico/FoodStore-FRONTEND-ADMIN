@@ -1,47 +1,51 @@
-import { useState, type ChangeEvent, type SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
 export const LoginPage = () => {
-  const [formValues, setFormValues] = useState("");
-  const { login } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loading, error } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const user = login(formValues);
-    if (!user) {
-      console.log("Usuario no encontrado");
-      return;
-    }
-    if (user.role === "admin" || user.role === "employee") {
+    const success = await login(email, password);
+    if (!success) return;
+
+    const { user } = useAuthStore.getState();
+    if (user && (user.roles.includes("ADMIN") || user.roles.includes("STOCK") || user.roles.includes("PEDIDOS"))) {
       navigate("/dashboard");
-    } else if (user.role === "client") {
+    } else {
       navigate("/orders");
     }
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFormValues(e.target.value);
-  };
-
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        id="login-email"
-        value={formValues}
-        onChange={handleChange}
-        type="text"
-        placeholder="Ingresa tu email"
-      />
-      <button type="submit">Entrar</button>
+      <h1>Iniciar Sesión</h1>
 
-      {/* MOCK USERS */}
-      <ul>
-        <li>admin@app.com → admin</li>
-        <li>emp@app.com → employee</li>
-        <li>client@app.com → client</li>
-      </ul>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        type="text"
+        placeholder="Email"
+        required
+      />
+
+      <input
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        type="password"
+        placeholder="Contraseña"
+        required
+      />
+
+      <button type="submit" disabled={loading}>
+        {loading ? "Ingresando..." : "Entrar"}
+      </button>
     </form>
   );
 };

@@ -1,13 +1,8 @@
 const BASE_URL = 'http://localhost:8000';
 
-// Función para simular retraso de red (útil para el video del parcial)
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  // CLAVE UN DELAY DE 1.5 SEGUNDOS PARA QUE SE VEA EL LOADING EN EL VIDEO XDDDD
-  await delay(1500);
-
+export async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
+    credentials: 'include',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -20,8 +15,25 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     throw new Error(errorData.detail || 'Error en la petición');
   }
 
-  // En DELETE (204 No Content), response.json() falla.
-  if (response.status === 204) return null;
+  if (response.status === 204) return null as T;
+
+  return response.json();
+}
+
+/** Login: usa form-urlencoded (OAuth2PasswordRequestForm) */
+export async function apiLogin(email: string, password: string) {
+  const body = new URLSearchParams({ username: email, password });
+  const response = await fetch(`${BASE_URL}/api/v1/auth/token`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Error al iniciar sesión');
+  }
 
   return response.json();
 }
