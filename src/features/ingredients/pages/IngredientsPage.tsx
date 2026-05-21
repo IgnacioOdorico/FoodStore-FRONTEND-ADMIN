@@ -28,6 +28,10 @@ export const IngredientsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['ingredients'] });
       handleClose();
     },
+    onError: (error) => {
+      console.error('Error al guardar ingrediente:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
   });
 
   const deleteMutation = useMutation({

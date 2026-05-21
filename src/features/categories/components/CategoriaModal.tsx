@@ -4,6 +4,7 @@ import type { Categoria } from '../types/categoria';
 import { Button } from '../../../shared/ui/Button';
 import { Input } from '../../../shared/ui/Input';
 import { Modal } from '../../../shared/ui/Modal';
+import { X } from 'lucide-react';
 
 interface CategoriaModalProps {
   isOpen: boolean;
@@ -82,13 +83,42 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
         <form.Field
           name="imagen_url"
           children={(field) => (
-            <Input
-              label="URL de Imagen"
-              placeholder="https://example.com/imagen.jpg"
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">URL de Imagen (Ej: Cloudinary, Imgur)</label>
+              
+              {/* Previa de imagen */}
+              {field.state.value && (
+                <div className="relative w-full h-40 rounded-lg border-2 border-cocoa/20 overflow-hidden bg-canvas/30">
+                  <img 
+                    src={field.state.value} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      field.handleChange('');
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Input URL */}
+              <Input
+                label={field.state.value ? 'Cambiar URL de Imagen' : 'Pegar URL de Imagen'}
+                type="url"
+                placeholder="https://ejemplo.com/imagen.jpg"
+                value={field.state.value}
+                onChange={(e) => {
+                  field.handleChange(e.target.value);
+                }}
+                onBlur={field.handleBlur}
+              />
+              <p className="text-[10px] text-cocoa/50 italic">💡 Tip: Sube tu imagen a Cloudinary, Imgur o similar y pega la URL aquí</p>
+            </div>
           )}
         />
 

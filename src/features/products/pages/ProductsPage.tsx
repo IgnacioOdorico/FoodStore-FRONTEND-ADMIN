@@ -51,6 +51,10 @@ export const ProductsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       handleClose();
     },
+    onError: (error) => {
+      console.error('Error al guardar producto:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
   });
 
   const deleteMutation = useMutation({
@@ -58,6 +62,10 @@ export const ProductsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
+    onError: (error) => {
+      console.error('Error al eliminar producto:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
   });
 
   const handleOpen = (producto?: Producto) => {

@@ -1,13 +1,17 @@
 import type { Categoria } from "../../categories/types/categoria";
 import type { Ingrediente } from "../../ingredients/types/ingrediente";
 
+export interface IngredienteReceta extends Ingrediente {
+    cantidad: number;
+    es_removible: boolean;
+}
+
 export interface Producto {
     id?: number;
     nombre: string;
     descripcion?: string;
     precio_base: number;
-    imagenes_url: string[];
-    stock_cantidad: number;
+    imagen_url?: string;
     disponible: boolean;
     
     created_at?: string;
@@ -16,5 +20,5 @@ export interface Producto {
 
     // Relaciones
     categorias?: (Categoria & { es_principal?: boolean })[];
-    ingredientes?: (Ingrediente & { es_removible?: boolean })[];
+    ingredientes?: IngredienteReceta[];
 }

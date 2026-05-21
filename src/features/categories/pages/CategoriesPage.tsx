@@ -30,6 +30,10 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       handleClose();
     },
+    onError: (error) => {
+      console.error('Error al guardar categoría:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
   });
 
   // Mutación para Eliminar
@@ -39,8 +43,8 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
     onError: (error) => {
-      console.error('Error al borrar:', error);
-      alert('Error al borrar: ' + error.message);
+      console.error('Error al borrar categoría:', error);
+      alert('Error al borrar: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   });
 

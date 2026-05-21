@@ -7,7 +7,8 @@ import {
 } from '@tanstack/react-table';
 import type { Categoria } from '../types/categoria';
 import { Button } from '../../../shared/ui/Button';
-import { Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface CategoriaTableProps {
   data: Categoria[];
@@ -51,14 +52,14 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, on
       cell: info => {
         const url = info.getValue();
         return (
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
-            {url ? (
-              <img src={url} alt="Categoría" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <ImageIcon className="w-5 h-5" />
-              </div>
-            )}
+          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-cocoa/20">
+            <ImageWithFallback 
+              src={url}
+              alt="Categoría"
+              className="w-full h-full object-cover"
+              fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
+              showFallbackText={false}
+            />
           </div>
         );
       },

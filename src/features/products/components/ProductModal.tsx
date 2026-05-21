@@ -4,6 +4,7 @@ import type { Producto } from '../types/producto';
 import { Button } from '../../../shared/ui/Button';
 import { Input } from '../../../shared/ui/Input';
 import { Modal } from '../../../shared/ui/Modal';
+import { X } from 'lucide-react';
 
 import type { Categoria } from '../../categories/types/categoria';
 import type { Ingrediente } from '../../ingredients/types/ingrediente';
@@ -32,18 +33,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       nombre: productoSelected?.nombre ?? '',
       descripcion: productoSelected?.descripcion ?? '',
       precio_base: productoSelected?.precio_base ?? 0,
-      imagenes_url: productoSelected?.imagenes_url?.[0] ?? '',
-      stock_cantidad: productoSelected?.stock_cantidad ?? 0,
+      imagen_url: productoSelected?.imagen_url ?? '',
       disponible: productoSelected?.disponible ?? true,
       categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
-      ingrediente_ids: productoSelected?.ingredientes?.map(i => i.id!) ?? [],
+      ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
+        id: i.id!,
+        cantidad: i.cantidad ?? 1,
+        es_removible: i.es_removible ?? false,
+      })) ?? [],
     },
     onSubmit: async ({ value }) => {
       onSave({
-        ...value,
-        imagenes_url: [value.imagenes_url],
+        nombre: value.nombre,
+        descripcion: value.descripcion,
         precio_base: Number(value.precio_base),
-        stock_cantidad: Number(value.stock_cantidad)
+        imagen_url: value.imagen_url,
+        disponible: value.disponible,
+        categoria_ids: value.categoria_ids,
+        ingredientes_receta: value.ingredientes_receta,
       } as Partial<Producto>);
     },
   });
@@ -54,11 +61,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         nombre: productoSelected?.nombre ?? '',
         descripcion: productoSelected?.descripcion ?? '',
         precio_base: productoSelected?.precio_base ?? 0,
-        imagenes_url: productoSelected?.imagenes_url?.[0] ?? '',
-        stock_cantidad: productoSelected?.stock_cantidad ?? 0,
+        imagen_url: productoSelected?.imagen_url ?? '',
         disponible: productoSelected?.disponible ?? true,
         categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
-        ingrediente_ids: productoSelected?.ingredientes?.map(i => i.id!) ?? [],
+        ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
+          id: i.id!,
+          cantidad: i.cantidad ?? 1,
+          es_removible: i.es_removible ?? false,
+        })) ?? [],
       });
     }
   }, [productoSelected, isOpen, form]);
@@ -96,20 +106,47 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <form.Field
-            name="imagenes_url"
-            children={(field) => (
-              <Input label="URL de Imagen" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} />
-            )}
-          />
-          <form.Field
-            name="stock_cantidad"
-            children={(field) => (
-              <Input label="Stock Actual" type="number" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(Number(e.target.value))} />
-            )}
-          />
-        </div>
+        <form.Field
+          name="imagen_url"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">URL de Imagen (Ej: Cloudinary, Imgur)</label>
+              
+               {/* Previa de imagen */}
+               {field.state.value && (
+                 <div className="relative w-full h-40 rounded-lg border-2 border-cocoa/20 overflow-hidden bg-canvas/30">
+                   <img 
+                     src={field.state.value} 
+                     alt="Preview" 
+                     className="w-full h-full object-cover"
+                   />
+                   <button
+                     type="button"
+                     onClick={() => {
+                       field.handleChange('');
+                     }}
+                     className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                   >
+                     <X className="w-4 h-4 text-white" />
+                   </button>
+                 </div>
+               )}
+               
+               {/* Input URL */}
+               <Input
+                 label={field.state.value ? 'Cambiar URL de Imagen' : 'Pegar URL de Imagen'}
+                 type="url"
+                 placeholder="https://ejemplo.com/imagen.jpg"
+                 value={field.state.value}
+                 onChange={(e) => {
+                   field.handleChange(e.target.value);
+                 }}
+                 onBlur={field.handleBlur}
+               />
+              <p className="text-[10px] text-cocoa/50 italic">💡 Tip: Sube tu imagen a Cloudinary, Imgur o similar y pega la URL aquí</p>
+            </div>
+          )}
+        />
 
         <form.Field
           name="descripcion"
@@ -158,29 +195,68 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             )}
           />
 
-          {/* Ingredientes Multi-select */}
+          {/* Ingredientes Multi-select con cantidad */}
           <form.Field
-            name="ingrediente_ids"
+            name="ingredientes_receta"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Ingredientes</label>
-                <div className="flex flex-wrap gap-2 p-3 bg-canvas/30 rounded-xl border-2 border-cocoa/20 min-h-[100px] shadow-inner">
-                  {ingredientes.map(ing => (
-                    <label key={ing.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 cursor-pointer transition-all ${field.state.value.includes(ing.id!) ? 'bg-cocoa text-white border-cocoa shadow-md scale-105' : 'bg-canvas/50 text-brand-active/70 border-cocoa/10 hover:border-cocoa/40'}`}>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={field.state.value.includes(ing.id!)}
-                        onChange={(e) => {
-                          const val = e.target.checked 
-                            ? [...field.state.value, ing.id!]
-                            : field.state.value.filter(id => id !== ing.id);
-                          field.handleChange(val);
-                        }}
-                      />
-                      <span className="text-[10px] font-black uppercase tracking-tighter italic">{ing.nombre}</span>
-                    </label>
-                  ))}
+                <div className="flex flex-col gap-2 p-3 bg-canvas/30 rounded-xl border-2 border-cocoa/20 max-h-[300px] overflow-y-auto shadow-inner">
+                  {ingredientes.map(ing => {
+                    const selected = field.state.value.find(i => i.id === ing.id);
+                    return (
+                      <div key={ing.id} className={`flex items-center gap-2 p-2 rounded-lg border-2 transition-all ${selected ? 'bg-cocoa/20 border-cocoa' : 'bg-canvas/50 border-cocoa/10'}`}>
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 cursor-pointer"
+                          checked={!!selected}
+                          onChange={(e) => {
+                            const val = e.target.checked 
+                              ? [...field.state.value, { id: ing.id!, cantidad: 1, es_removible: false }]
+                              : field.state.value.filter(i => i.id !== ing.id);
+                            field.handleChange(val);
+                          }}
+                        />
+                        <span className="text-[10px] font-black uppercase tracking-tighter italic flex-1">{ing.nombre}</span>
+                        {selected && (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              className="w-12 input-field text-xs"
+                              placeholder="Qty"
+                              value={selected.cantidad}
+                              onChange={(e) => {
+                                const updated = field.state.value.map(i => 
+                                  i.id === ing.id 
+                                    ? { ...i, cantidad: Number(e.target.value) || 1 }
+                                    : i
+                                );
+                                field.handleChange(updated);
+                              }}
+                            />
+                            <label className="flex items-center gap-1 cursor-pointer text-[9px]">
+                              <input
+                                type="checkbox"
+                                className="w-3 h-3"
+                                checked={selected.es_removible}
+                                onChange={(e) => {
+                                  const updated = field.state.value.map(i => 
+                                    i.id === ing.id 
+                                      ? { ...i, es_removible: e.target.checked }
+                                      : i
+                                  );
+                                  field.handleChange(updated);
+                                }}
+                              />
+                              <span>Removible</span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { productsService } from '../services/products';
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
 import { Button } from '../../../shared/ui/Button';
 import { ArrowLeft, Info, Tags, AlertTriangle } from 'lucide-react';
@@ -41,16 +42,18 @@ export const ProductDetailPage: React.FC = () => {
         <div className="relative group">
           <div className="absolute -inset-4 bg-cocoa/10 rounded-[3rem] blur-2xl group-hover:bg-cocoa/20 transition-all duration-700" />
           <div className="relative aspect-square rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
-            <img 
-              src={product.imagenes_url?.[0] || 'https://images.unsplash.com/photo-1513104890138-7c749659a591'} 
+            <ImageWithFallback
+              src={product.imagen_url}
               alt={product.nombre}
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
+              showFallbackText={true}
             />
-            {/* Si no hay stock, le clavo un cartelito encima de la imagen. */}
-            {product.stock_cantidad === 0 && (
+            {/* Si no está disponible, le clavo un cartelito encima de la imagen. */}
+            {!product.disponible && (
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                 <span className="bg-red-600 text-white px-8 py-3 rounded-full font-black uppercase italic tracking-widest shadow-2xl border-2 border-white/20">
-                  Sin Stock
+                  No Disponible
                 </span>
               </div>
             )}
@@ -88,9 +91,9 @@ export const ProductDetailPage: React.FC = () => {
             </div>
             <div className="w-px h-12 bg-cocoa/10" />
             <div className="flex flex-col">
-              <span className="text-cocoa/60 text-[10px] font-black uppercase tracking-widest italic mb-1">Disponibilidad</span>
-              <span className={`text-sm font-black uppercase italic ${product.stock_cantidad > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {product.stock_cantidad > 0 ? `${product.stock_cantidad} Unidades` : 'Agotado'}
+              <span className="text-cocoa/60 text-[10px] font-black uppercase tracking-widest italic mb-1">Estado</span>
+              <span className={`text-sm font-black uppercase italic ${product.disponible ? 'text-green-600' : 'text-red-600'}`}>
+                {product.disponible ? 'Disponible' : 'No Disponible'}
               </span>
             </div>
           </div>

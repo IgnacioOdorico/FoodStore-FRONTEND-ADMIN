@@ -1,15 +1,27 @@
 import React from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBasket, UtensilsCrossed, Users, ShoppingCart, User, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import logo1 from '../../assets/logo.png';
+import logo2 from '../../assets/logo2.png';
+import logo3 from '../../assets/logo3.png';
 
 export const Navbar: React.FC = () => {
   const { user, logout, hasRole } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Determinar qué logo mostrar según la ruta actual
+  const getActiveLogo = () => {
+    if (location.pathname.includes('/products')) return logo1;
+    if (location.pathname.includes('/categories')) return logo2;
+    if (location.pathname.includes('/ingredients')) return logo3;
+    return logo1; // Default: logo de productos
   };
 
   // Si no hay usuario autenticado, no mostramos el Navbar
@@ -20,8 +32,12 @@ export const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
 
-          {/* BRANDING */}
-          <Link to="/dashboard" className="flex items-center gap-3">
+          {/* BRANDING: Logo dinámico + Título */}
+          <Link to="/dashboard" className="flex items-center gap-4 group">
+            {/* Logo dinámico - más grande */}
+            <div className="h-12 w-12 flex-shrink-0 transition-all duration-300 hover:scale-110 active:scale-95">
+              <img src={getActiveLogo()} alt="FoodStore" className="h-full w-full object-contain" />
+            </div>
             <span className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
               FoodStore
             </span>

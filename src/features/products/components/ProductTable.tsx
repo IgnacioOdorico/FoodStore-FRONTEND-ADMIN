@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-table';
 import type { Producto } from '../types/producto';
 import { Button } from '../../../shared/ui/Button';
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
 import { Pencil, Trash2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,9 +26,15 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
       header: 'Producto',
       cell: info => (
         <div className="flex items-center gap-3">
-          {info.row.original.imagenes_url?.[0] && (
-            <img src={info.row.original.imagenes_url[0]} alt="" className="w-12 h-12 rounded-xl object-cover border-2 border-cocoa/20 shadow-sm" />
-          )}
+          <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-cocoa/20 shadow-sm flex-shrink-0">
+            <ImageWithFallback 
+              src={info.row.original.imagen_url} 
+              alt={info.getValue()}
+              className="w-full h-full object-cover"
+              fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
+              showFallbackText={false}
+            />
+          </div>
           <div className="flex flex-col">
             <span className="font-black text-white uppercase italic tracking-tighter">{info.getValue()}</span>
             <span className="text-[10px] text-white/50 line-clamp-1 italic">{info.row.original.descripcion}</span>
