@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBasket, UtensilsCrossed, Users, ShoppingCart, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingBasket, UtensilsCrossed, Users, ShoppingCart, User, LogOut, ClipboardList } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import logo1 from '../../assets/logo.png';
 import logo2 from '../../assets/logo2.png';
@@ -16,15 +16,13 @@ export const Navbar: React.FC = () => {
     navigate('/login');
   };
 
-  // Determinar qué logo mostrar según la ruta actual
   const getActiveLogo = () => {
     if (location.pathname.includes('/products')) return logo1;
     if (location.pathname.includes('/categories')) return logo2;
     if (location.pathname.includes('/ingredients')) return logo3;
-    return logo1; // Default: logo de productos
+    return logo1;
   };
 
-  // Si no hay usuario autenticado, no mostramos el Navbar
   if (!user) return null;
 
   return (
@@ -32,9 +30,8 @@ export const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
 
-          {/* BRANDING: Logo dinámico + Título */}
+          {/* BRANDING */}
           <Link to="/dashboard" className="flex items-center gap-4 group">
-            {/* Logo dinámico - más grande */}
             <div className="h-12 w-12 flex-shrink-0 transition-all duration-300 hover:scale-110 active:scale-95">
               <img src={getActiveLogo()} alt="FoodStore" className="h-full w-full object-contain" />
             </div>
@@ -46,35 +43,40 @@ export const Navbar: React.FC = () => {
           {/* MENÚ SEGÚN ROL */}
           <div className="flex items-center gap-1 p-1 bg-black/10 rounded-2xl border-2 border-white/5 backdrop-blur-md">
 
-            {/* admin + stock + pedidos ven el catálogo */}
+            {/* ADMIN + STOCK + PEDIDOS: ven el catálogo */}
             {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
               <>
-                <NavItem to="/dashboard"    icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
-                <NavItem to="/products"     icon={<ShoppingBasket className="w-4 h-4" />}  label="Productos" />
-                <NavItem to="/categories"   icon={<LayoutDashboard className="w-4 h-4" />} label="Categorías" />
-                <NavItem to="/ingredients"  icon={<UtensilsCrossed className="w-4 h-4" />} label="Ingredientes" />
+                <NavItem to="/dashboard"   icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+                <NavItem to="/products"    icon={<ShoppingBasket className="w-4 h-4" />}  label="Productos" />
+                <NavItem to="/categories"  icon={<LayoutDashboard className="w-4 h-4" />} label="Categorías" />
+                <NavItem to="/ingredients" icon={<UtensilsCrossed className="w-4 h-4" />} label="Ingredientes" />
               </>
             )}
 
-            {/* solo admin ve gestión de usuarios */}
+            {/* ADMIN + PEDIDOS: gestión de pedidos (cajero) */}
+            {hasRole('ADMIN', 'PEDIDOS') && (
+              <NavItem to="/orders" icon={<ClipboardList className="w-4 h-4" />} label="Pedidos" />
+            )}
+
+            {/* Solo ADMIN: gestión de usuarios */}
             {hasRole('ADMIN') && (
               <NavItem to="/admin/users" icon={<Users className="w-4 h-4" />} label="Usuarios" />
             )}
 
-            {/* client ve sus pedidos */}
-            {hasRole('CLIENT') && (
-              <NavItem to="/orders" icon={<ShoppingCart className="w-4 h-4" />} label="Mis Pedidos" />
-            )}
-
-            {/* cualquier autenticado ve perfil */}
+            {/* Cualquier autenticado: perfil */}
             <NavItem to="/profile" icon={<User className="w-4 h-4" />} label="Perfil" />
           </div>
 
-          {/* USUARIO + LOGOUT */}
+          {/* USUARIO + ROL + LOGOUT */}
           <div className="flex items-center gap-3">
-            <span className="text-white/70 text-sm font-semibold">
-              {user.nombre} {user.apellido} <span className="text-white/40">({user.roles.join(', ')})</span>
-            </span>
+            <div className="text-right hidden md:block">
+              <p className="text-white text-sm font-bold leading-tight">
+                {user.nombre} {user.apellido}
+              </p>
+              <p className="text-white/40 text-[10px] uppercase tracking-widest">
+                {user.roles.join(' · ')}
+              </p>
+            </div>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all duration-200"
@@ -90,7 +92,7 @@ export const Navbar: React.FC = () => {
   );
 };
 
-// COMPONENTE INTERNO
+
 const NavItem: React.FC<{ to: string; icon: React.ReactNode; label: string }> = ({ to, icon, label }) => (
   <NavLink
     to={to}
@@ -104,4 +106,9 @@ const NavItem: React.FC<{ to: string; icon: React.ReactNode; label: string }> = 
     {icon}
     {label}
   </NavLink>
+);
+
+
+export const CartIcon: React.FC = () => (
+  <ShoppingCart className="w-4 h-4" />
 );

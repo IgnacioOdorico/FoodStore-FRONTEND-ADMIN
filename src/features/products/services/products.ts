@@ -1,10 +1,12 @@
-import { apiFetch } from '../../../shared/services/api';
+import { api } from '../../../shared/services/api';
 import type { Producto } from '../types/producto';
 
 export const productsService = {
-  getAll: () => apiFetch<Producto[]>('/api/v1/productos/'),
-  getById: (id: number) => apiFetch<Producto>(`/api/v1/productos/${id}`),
-  create: (data: Partial<Producto>) => apiFetch<Producto>('/api/v1/productos/', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: Partial<Producto>) => apiFetch<Producto>(`/api/v1/productos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id: number) => apiFetch<Producto>(`/api/v1/productos/${id}`, { method: 'DELETE' }),
+  getAll: () => api.get<Producto[]>('/api/v1/productos/').then((r) => r.data),
+  getById: (id: number) => api.get<Producto>(`/api/v1/productos/${id}`).then((r) => r.data),
+  create: (data: Partial<Producto>) => api.post<Producto>('/api/v1/productos/', data).then((r) => r.data),
+  update: (id: number, data: Partial<Producto>) => api.put<Producto>(`/api/v1/productos/${id}`, data).then((r) => r.data),
+  patchDisponibilidad: (id: number, disponible: boolean) =>
+    api.patch<Producto>(`/api/v1/productos/${id}/disponibilidad`, { disponible }).then((r) => r.data),
+  delete: (id: number) => api.delete(`/api/v1/productos/${id}`).then((r) => r.data),
 };

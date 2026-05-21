@@ -1,56 +1,101 @@
-const BASE_URL = 'http://localhost:8000';
+import axios from 'axios';
 
-export async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      credentials: 'include',
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Error HTTP ${response.status}: ${response.statusText}`);
+export const api = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,           // envía la cookie httpOnly automáticamente
+  headers: { 'Content-Type': 'application/json' },
+});
+
+
+api.interceptors.request.use(
+  (config) => config,
+  (error) => Promise.reject(error),
+);
+
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 401 en endpoints que no son login ni refresh
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/refresh') &&
+      !originalRequest.url?.includes('/auth/token')
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => api(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await api.post('/api/v1/auth/refresh');
+        processQueue(null);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
-    if (response.status === 204) return null as T;
+    // Extraer mensaje de error legible de FastAPI
+    const message =
+      error.response?.data?.detail ||
+      error.message ||
+      'Error desconocido';
 
-    return response.json();
-  } catch (error) {
-    if (error instanceof TypeError) {
-      // TypeError: Failed to fetch - typically means network error or server is down
-      console.error('Network error - Backend might be offline:', error);
-      throw new Error('Error de conexión: ¿El backend está corriendo en http://localhost:8000?');
-    }
-    throw error;
-  }
+    return Promise.reject(new Error(message));
+  },
+);
+
+
+export async function apiLogin(email: string, password: string) {
+  const params = new URLSearchParams({ username: email, password });
+  const { data } = await api.post('/api/v1/auth/token', params, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
+  return data;
 }
 
-/** Login: usa form-urlencoded (OAuth2PasswordRequestForm) */
-export async function apiLogin(email: string, password: string) {
-  try {
-    const body = new URLSearchParams({ username: email, password });
-    const response = await fetch(`${BASE_URL}/api/v1/auth/token`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Error HTTP ${response.status}: ${response.statusText}`);
-    }
+export async function apiFetch<T = unknown>(
+  endpoint: string,
+  options: { method?: string; body?: string; headers?: Record<string, string> } = {},
+): Promise<T> {
+  const method = (options.method ?? 'GET').toUpperCase();
+  const body = options.body ? JSON.parse(options.body) : undefined;
+  const cfg = { headers: options.headers };
 
-    return response.json();
-  } catch (error) {
-    if (error instanceof TypeError) {
-      console.error('Network error on login - Backend might be offline:', error);
-      throw new Error('Error de conexión: ¿El backend está corriendo en http://localhost:8000?');
-    }
-    throw error;
-  }
+  let response;
+  if (method === 'GET')    response = await api.get<T>(endpoint, cfg);
+  else if (method === 'DELETE') response = await api.delete<T>(endpoint, cfg);
+  else if (method === 'POST')   response = await api.post<T>(endpoint, body, cfg);
+  else if (method === 'PUT')    response = await api.put<T>(endpoint, body, cfg);
+  else                          response = await api.patch<T>(endpoint, body, cfg);
+
+  return response.data;
 }

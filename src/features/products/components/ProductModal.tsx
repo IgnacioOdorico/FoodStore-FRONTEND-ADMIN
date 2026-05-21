@@ -33,6 +33,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       nombre: productoSelected?.nombre ?? '',
       descripcion: productoSelected?.descripcion ?? '',
       precio_base: productoSelected?.precio_base ?? 0,
+      stock_cantidad: productoSelected?.stock_cantidad ?? 0,
       imagen_url: productoSelected?.imagen_url ?? '',
       disponible: productoSelected?.disponible ?? true,
       categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
@@ -47,6 +48,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         nombre: value.nombre,
         descripcion: value.descripcion,
         precio_base: Number(value.precio_base),
+        stock_cantidad: Number(value.stock_cantidad),
         imagen_url: value.imagen_url,
         disponible: value.disponible,
         categoria_ids: value.categoria_ids,
@@ -61,6 +63,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         nombre: productoSelected?.nombre ?? '',
         descripcion: productoSelected?.descripcion ?? '',
         precio_base: productoSelected?.precio_base ?? 0,
+        stock_cantidad: productoSelected?.stock_cantidad ?? 0,
         imagen_url: productoSelected?.imagen_url ?? '',
         disponible: productoSelected?.disponible ?? true,
         categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
@@ -101,10 +104,25 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             name="precio_base"
             validators={{ onChange: ({ value }) => value <= 0 ? 'Debe ser mayor a 0' : undefined }}
             children={(field) => (
-              <Input label="Precio" type="number" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
+              <Input label="Precio base ($)" type="number" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
             )}
           />
         </div>
+
+        <form.Field
+          name="stock_cantidad"
+          validators={{ onChange: ({ value }) => value < 0 ? 'No puede ser negativo' : undefined }}
+          children={(field) => (
+            <Input
+              label="Stock en almacén (unidades)"
+              type="number"
+              value={field.state.value}
+              onBlur={field.handleBlur}
+              onChange={(e) => field.handleChange(Number(e.target.value))}
+              error={field.state.meta.errors?.[0]?.toString()}
+            />
+          )}
+        />
 
         <form.Field
           name="imagen_url"

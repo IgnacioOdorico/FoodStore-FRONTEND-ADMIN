@@ -1,36 +1,31 @@
 import React from 'react';
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { Ingrediente } from '../types/ingrediente';
-import { Button } from '../../../shared/ui/Button';
-import { Pencil, Trash2, Package } from 'lucide-react';
 
 interface IngredientTableProps {
   data: Ingrediente[];
-  onEdit: (ingrediente: Ingrediente) => void;
-  onDelete: (id: number) => void;
+  onEdit?:   (ingrediente: Ingrediente) => void;
+  onDelete?: (id: number) => void;
 }
 
 const columnHelper = createColumnHelper<Ingrediente>();
 
 export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, onDelete }) => {
+  const isAdmin = !!(onEdit && onDelete);
+
   const columns = [
     columnHelper.accessor('nombre', {
-      header: 'Ingrediente',
-      cell: info => (
+      header: 'Ingredient',
+      cell: (info) => (
         <div className="flex items-center gap-3">
-          <div className="bg-white/10 text-orange-400 p-2 rounded-lg">
-            <Package className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 border border-outline-variant">
+            <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: 18 }}>egg_alt</span>
           </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-white">{info.getValue()}</span>
+          <div>
+            <p className="text-body-sm font-semibold text-on-surface">{info.getValue()}</p>
             {info.row.original.es_alergeno && (
-              <span className="text-[10px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-bold uppercase w-fit mt-0.5 border border-red-500/30">
-                Alérgeno
+              <span className="status-badge bg-[#ffdad6] text-[#93000a] mt-0.5" style={{ fontSize: 10 }}>
+                Allergen
               </span>
             )}
           </div>
@@ -38,61 +33,64 @@ export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, 
       ),
     }),
     columnHelper.accessor('descripcion', {
-      header: 'Descripción',
-      cell: info => <span className="text-white/60 line-clamp-1">{info.getValue() || '-'}</span>,
+      header: 'Description',
+      cell: (info) => <span className="text-body-sm text-on-surface-variant line-clamp-1">{info.getValue() || '—'}</span>,
+    }),
+    columnHelper.accessor('es_alergeno', {
+      header: 'Allergen',
+      cell: (info) => info.getValue()
+        ? <span className="status-badge bg-[#ffdad6] text-[#93000a]">Yes</span>
+        : <span className="status-badge bg-[#bbf7d033] text-[#166534]">No</span>,
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Acciones',
-      cell: info => (
-        <div className="flex gap-2 justify-end">
-          <Button variant="secondary" onClick={() => onEdit(info.row.original)} className="!p-2">
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={() => onDelete(info.row.original.id!)}
-            className="!p-2"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+      header: 'Actions',
+      cell: (info) => (
+        <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+          {isAdmin ? (
+            <>
+              <button onClick={() => onEdit!(info.row.original)}
+                className="btn-icon hover:bg-surface-container-high text-secondary" title="Edit">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+              </button>
+              <button onClick={() => onDelete!(info.row.original.id!)}
+                className="btn-icon hover:bg-error-container/30 text-error" title="Delete">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
+              </button>
+            </>
+          ) : (
+            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+          )}
         </div>
       ),
     }),
   ];
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-x-auto card !p-0">
-      <table className="w-full text-left">
-        <thead className="bg-cocoa border-b-2 border-cocoa/20">
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id} className="px-6 py-4 text-xs font-black text-white uppercase tracking-wider">
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
+    <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="table-header">
+            {table.getHeaderGroups()[0].headers.map((h) => (
+              <th key={h.id} className="table-th">{h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}</th>
+            ))}
+          </tr>
         </thead>
-        <tbody className="divide-y-2 divide-cocoa/20">
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id} className="hover:bg-cocoa/10 transition-colors">
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id} className="px-6 py-4">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+        <tbody className="divide-y divide-outline-variant">
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id} className="group hover:bg-surface-container-lowest transition-colors">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="table-td">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant">
+        <p className="text-body-sm text-on-surface-variant">Showing <span className="font-bold">{data.length}</span> ingredients</p>
+      </div>
     </div>
   );
 };

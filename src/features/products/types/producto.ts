@@ -12,8 +12,9 @@ export interface Producto {
     descripcion?: string;
     precio_base: number;
     imagen_url?: string;
+    stock_cantidad?: number;
     disponible: boolean;
-    
+
     created_at?: string;
     updated_at?: string;
     deleted_at?: string | null;
@@ -21,4 +22,7 @@ export interface Producto {
     // Relaciones
     categorias?: (Categoria & { es_principal?: boolean })[];
     ingredientes?: IngredienteReceta[];
+    // Payload de escritura (no viene en GET, solo en POST/PUT)
+    categoria_ids?: number[];
+    ingredientes_receta?: { id: number; cantidad: number; es_removible: boolean }[];
 }

@@ -8,11 +8,9 @@ import { Button } from '../../../shared/ui/Button';
 import { ArrowLeft, Info, Tags, AlertTriangle } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
-  // useParams: Esta es la clave. Saca el 'id' de la URL (/products/1 -> id = 1).
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Traigo el producto usando el ID de la URL.
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productsService.getById(Number(id)),
@@ -25,8 +23,6 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      
-      {/* BOTÓN VOLVER: Uso navigate(-1) para volver a la página anterior en el historial. */}
       <Button 
         variant="secondary" 
         onClick={() => navigate(-1)} 
@@ -38,7 +34,6 @@ export const ProductDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         
-        {/* SECCIÓN IMAGEN: Le puse un efecto de 'levitación' con shadow-2xl. */}
         <div className="relative group">
           <div className="absolute -inset-4 bg-cocoa/10 rounded-[3rem] blur-2xl group-hover:bg-cocoa/20 transition-all duration-700" />
           <div className="relative aspect-square rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
@@ -49,7 +44,7 @@ export const ProductDetailPage: React.FC = () => {
               fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
               showFallbackText={true}
             />
-            {/* Si no está disponible, le clavo un cartelito encima de la imagen. */}
+          
             {!product.disponible && (
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                 <span className="bg-red-600 text-white px-8 py-3 rounded-full font-black uppercase italic tracking-widest shadow-2xl border-2 border-white/20">
@@ -60,14 +55,12 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* SECCIÓN INFORMACIÓN: Acá uso el color Cocoa Brown para jerarquizar los textos. */}
         <div className="flex flex-col gap-8 py-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-brand/10 text-brand text-[10px] font-black uppercase italic tracking-widest px-3 py-1 rounded-full border border-brand/20">
                 Premium Product
               </span>
-              {/* CARTEL DE ALÉRGENO: Solo aparece si el producto tiene algún ingrediente que es alérgeno. */}
               {product.ingredientes?.some(ing => ing.es_alergeno) && (
                 <span className="bg-red-600 text-white text-[10px] font-black uppercase italic tracking-widest px-3 py-1 rounded-full border border-red-700 shadow-lg flex items-center gap-1 animate-pulse">
                   <AlertTriangle className="w-3 h-3" /> Contiene Alérgenos
@@ -96,9 +89,21 @@ export const ProductDetailPage: React.FC = () => {
                 {product.disponible ? 'Disponible' : 'No Disponible'}
               </span>
             </div>
+            {product.stock_cantidad !== undefined && (
+              <>
+                <div className="w-px h-12 bg-cocoa/10" />
+                <div className="flex flex-col">
+                  <span className="text-cocoa/60 text-[10px] font-black uppercase tracking-widest italic mb-1">Stock</span>
+                  <span className={`text-sm font-black uppercase italic ${
+                    product.stock_cantidad === 0 ? 'text-red-600' : product.stock_cantidad < 5 ? 'text-yellow-600' : 'text-green-600'
+                  }`}>
+                    {product.stock_cantidad} u.
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* CHIPS DE CATEGORÍAS: Los muestro como etiquetas. */}
           {product.categorias && product.categorias.length > 0 && (
             <div className="flex flex-col gap-3">
               <span className="flex items-center gap-2 text-cocoa/40 text-[10px] font-black uppercase tracking-widest italic">
@@ -114,7 +119,6 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           )}
 
-          {/* LISTA DE INGREDIENTES: Los muestro con iconos y resalto los alérgenos. */}
           {product.ingredientes && product.ingredientes.length > 0 && (
             <div className="flex flex-col gap-3">
               <span className="flex items-center gap-2 text-cocoa/40 text-[10px] font-black uppercase tracking-widest italic">

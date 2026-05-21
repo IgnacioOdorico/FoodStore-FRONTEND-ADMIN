@@ -1,58 +1,252 @@
+/* Hanken Grotesk — fuente oficial del sistema Stitch */
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
 @import "tailwindcss";
 
+/* ailwind v4: tokens de tema Stitch */
 @theme {
-  --color-brand: #6E7F3F;
-  --color-brand-hover: #5a6b33;
-  --color-brand-active: #4a592a;
-  --color-cocoa: #8A5A3C;
-  
-  --color-canvas: #B7C48A;
-  --color-surface: #6E7F3F;
-  
-  --radius-btn: 0.5rem;
+
+  /* Fuente */
+  --font-sans: "Hanken Grotesk", system-ui, sans-serif;
+
+  /* Colores: Surfaces */
+  --color-background:                #fff8f6;
+  --color-surface:                   #fff8f6;
+  --color-surface-bright:            #fff8f6;
+  --color-surface-dim:               #f1d3cd;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #fff0ed;
+  --color-surface-container:         #ffe9e4;
+  --color-surface-container-high:    #ffe2db;
+  --color-surface-container-highest: #fadcd5;
+  --color-surface-variant:           #fadcd5;
+
+  /* Colores: On-surface */
+  --color-on-surface:                #281814;
+  --color-on-surface-variant:        #5c403a;
+  --color-inverse-surface:           #3e2c28;
+  --color-inverse-on-surface:        #ffede9;
+  --color-on-background:             #281814;
+
+  /* Colores: Outline  */
+  --color-outline:                   #907068;
+  --color-outline-variant:           #e5beb5;
+
+  /* Colores: Primary (Rojo Apetito) */
+  --color-primary:                   #b22300;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #da3711;
+  --color-on-primary-container:      #fffbff;
+  --color-primary-fixed:             #ffdad2;
+  --color-primary-fixed-dim:         #ffb4a3;
+  --color-on-primary-fixed:          #3d0600;
+  --color-on-primary-fixed-variant:  #8b1900;
+  --color-inverse-primary:           #ffb4a3;
+  --color-surface-tint:              #b62400;
+
+  /* Colores: Secondary (Slate)  */
+  --color-secondary:                  #565e74;
+  --color-on-secondary:               #ffffff;
+  --color-secondary-container:        #dae2fd;
+  --color-on-secondary-container:     #5c647a;
+  --color-secondary-fixed:            #dae2fd;
+  --color-secondary-fixed-dim:        #bec6e0;
+  --color-on-secondary-fixed:         #131b2e;
+  --color-on-secondary-fixed-variant: #3f465c;
+
+  /* Colores: Tertiary (Azul)  */
+  --color-tertiary:                   #006192;
+  --color-on-tertiary:                #ffffff;
+  --color-tertiary-container:         #007bb8;
+  --color-on-tertiary-container:      #fcfcff;
+  --color-tertiary-fixed:             #cce5ff;
+  --color-tertiary-fixed-dim:         #91cdff;
+  --color-on-tertiary-fixed:          #001e31;
+  --color-on-tertiary-fixed-variant:  #004b72;
+
+  /* Colores: Error  */
+  --color-error:                      #ba1a1a;
+  --color-on-error:                   #ffffff;
+  --color-error-container:            #ffdad6;
+  --color-on-error-container:         #93000a;
+
+  /* Espaciado */
+  --spacing-xs:            4px;
+  --spacing-sm:            12px;
+  --spacing-base:          8px;
+  --spacing-md:            24px;
+  --spacing-lg:            40px;
+  --spacing-xl:            64px;
+  --spacing-gutter:        16px;
+
+  /* Border radius */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.5rem;
+  --radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-card:   0 4px 20px rgba(15,23,42,0.08);
+  --shadow-modal:  0 8px 40px rgba(15,23,42,0.12);
+  --shadow-button: 0 2px 8px rgba(178,35,0,0.20);
+
+  /* Tipografía  */
+  --text-display-lg:                    48px;
+  --text-display-lg--line-height:       1.1;
+  --text-display-lg--letter-spacing:    -0.02em;
+  --text-display-lg--font-weight:       700;
+
+  --text-headline-lg:                   32px;
+  --text-headline-lg--line-height:      1.2;
+  --text-headline-lg--letter-spacing:   -0.01em;
+  --text-headline-lg--font-weight:      700;
+
+  --text-headline-lg-mobile:            24px;
+  --text-headline-lg-mobile--line-height: 1.2;
+  --text-headline-lg-mobile--font-weight: 700;
+
+  --text-title-md:                      18px;
+  --text-title-md--line-height:         1.4;
+  --text-title-md--font-weight:         600;
+
+  --text-body-lg:                       16px;
+  --text-body-lg--line-height:          1.5;
+  --text-body-lg--font-weight:          400;
+
+  --text-body-sm:                       14px;
+  --text-body-sm--line-height:          1.5;
+  --text-body-sm--font-weight:          400;
+
+  --text-label-caps:                    12px;
+  --text-label-caps--line-height:       1;
+  --text-label-caps--letter-spacing:    0.05em;
+  --text-label-caps--font-weight:       700;
 }
 
+/*  Reset base */
 @layer base {
-  body {
-    @apply bg-canvas text-gray-900;
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  button, a, select {
-    @apply cursor-pointer;
+
+  button, a, select { cursor: pointer; }
+
+  /* Material Symbols */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
   }
+
+  /* Scrollbar sutil */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #e5beb5; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #907068; }
 }
 
+/*  Componentes reutilizables  */
 @layer components {
+
+  /* Botón primario Stitch */
   .btn-primary {
-    @apply bg-brand text-white font-semibold py-2 px-4 rounded-btn shadow-sm 
-           hover:bg-brand-hover active:bg-brand-active disabled:opacity-50 
-           disabled:cursor-not-allowed transition-all duration-200 
-           focus:outline-none focus:ring-2 focus:ring-brand/50 cursor-pointer;
+    @apply inline-flex items-center gap-2 bg-primary hover:bg-primary-container
+           text-on-primary font-semibold py-3 px-6 rounded-lg
+           shadow-button active:scale-[0.98] transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-primary/30
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
+
+  /* Botón secundario (outline) */
   .btn-secondary {
-    @apply bg-white/10 text-white border border-white/20 font-semibold py-2 px-4 rounded-btn
-           hover:bg-white/20 active:bg-white/30 disabled:opacity-50
-           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 cursor-pointer;
+    @apply inline-flex items-center gap-2 bg-surface-container-lowest
+           border border-outline-variant text-on-surface-variant
+           font-semibold py-2 px-4 rounded-lg
+           hover:bg-surface-container-high active:scale-[0.98]
+           transition-all duration-200 disabled:opacity-50;
   }
 
+  /* Botón de peligro */
   .btn-danger {
-    @apply bg-red-500 text-white font-semibold py-2 px-4 rounded-btn shadow-sm 
-           hover:bg-red-600 active:bg-red-700 disabled:opacity-50 
-           disabled:cursor-not-allowed transition-all duration-200 
-           focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-2 border-2 border-cocoa/40 rounded-btn bg-white/5 text-white placeholder:text-white/40
-           focus:outline-none focus:ring-2 focus:ring-cocoa/50 focus:border-cocoa
-           transition-all duration-200 disabled:bg-gray-800 cursor-text;
-  }
-  
-  select.input-field {
-    @apply cursor-pointer;
+    @apply inline-flex items-center gap-2 bg-error hover:bg-error/80
+           text-on-error font-semibold py-2 px-4 rounded-lg
+           active:scale-[0.98] transition-all duration-200 disabled:opacity-50;
   }
 
-  .card {
-    @apply bg-surface rounded-2xl shadow-xl border-2 border-cocoa/50 p-6 text-white backdrop-blur-sm;
+  /* Botón de acción pequeño (tablas) */
+  .btn-icon {
+    @apply p-2 rounded-full transition-colors duration-150;
+  }
+
+  /* Input Stitch */
+  .input-field {
+    @apply block w-full px-3 py-2.5 text-body-sm
+           bg-surface-container-lowest border border-outline-variant rounded-lg
+           text-on-surface placeholder:text-on-surface-variant/40
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+           transition-all duration-200 disabled:bg-surface-container;
+  }
+
+  select.input-field { @apply cursor-pointer; }
+
+  /* Card Stitch */
+  .fs-card {
+    @apply bg-surface-container-lowest rounded-xl border border-outline-variant
+           shadow-card p-md;
+  }
+
+  /* Badge de estado */
+  .status-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full
+           text-label-caps font-bold uppercase tracking-wider;
+  }
+
+  /* Fila de tabla */
+  .table-row {
+    @apply border-b border-outline-variant hover:bg-surface-container-lowest
+           transition-colors duration-100;
+  }
+
+  /* Encabezado de tabla */
+  .table-header {
+    @apply bg-surface-container-low border-b border-outline-variant;
+  }
+
+  .table-th {
+    @apply px-md py-sm text-label-caps font-bold text-on-surface-variant uppercase tracking-wider;
+  }
+
+  .table-td {
+    @apply px-md py-md text-body-sm text-on-surface;
+  }
+
+  /* Sidebar nav item activo */
+  .nav-item-active {
+    @apply flex items-center gap-3 px-4 py-3 bg-primary text-on-primary
+           rounded-lg mx-2 text-body-lg cursor-pointer
+           transition-all duration-200 active:scale-95;
+  }
+
+  /* Sidebar nav item inactivo */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 text-on-surface-variant
+           hover:bg-surface-container-high rounded-lg mx-2 text-body-lg
+           cursor-pointer transition-all duration-200 active:scale-95;
+  }
+
+  /* KPI card de dashboard */
+  .kpi-card {
+    @apply bg-surface-container-low p-md rounded-xl border border-outline-variant
+           flex flex-col gap-1;
   }
 }

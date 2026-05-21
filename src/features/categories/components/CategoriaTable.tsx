@@ -1,143 +1,117 @@
 import React, { useMemo } from 'react';
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { Categoria } from '../types/categoria';
-import { Button } from '../../../shared/ui/Button';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
-import { Pencil, Trash2 } from 'lucide-react';
 
 interface CategoriaTableProps {
   data: Categoria[];
-  onEdit: (categoria: Categoria) => void;
-  onDelete: (id: number) => void;
+  onEdit?:   (categoria: Categoria) => void;
+  onDelete?: (id: number) => void;
 }
 
 const columnHelper = createColumnHelper<Categoria & { depth: number }>();
 
 export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, onDelete }) => {
-  // Función para aplanar la jerarquía y calcular la profundidad con protección contra ciclos
+  const isAdmin = !!(onEdit && onDelete);
+
   const flattenedData = useMemo(() => {
     const visited = new Set<number>();
-    
-    const flatten = (
-      cats: Categoria[], 
-      parentId: number | null = null, 
-      depth = 0
-    ): (Categoria & { depth: number })[] => {
-      if (depth > 10) return []; // Seguridad total contra recursión infinita
+    const flatten = (cats: Categoria[], parentId: number | null = null, depth = 0): (Categoria & { depth: number })[] => {
+      if (depth > 10) return [];
       return cats
-        .filter(c => c.parent_id === parentId)
+        .filter((c) => c.parent_id === parentId)
         .reduce((acc, cat) => {
           if (visited.has(cat.id!)) return acc;
           visited.add(cat.id!);
-
-          return [
-            ...acc, 
-            { ...cat, depth }, 
-            ...flatten(cats, cat.id!, depth + 1)
-          ];
+          return [...acc, { ...cat, depth }, ...flatten(cats, cat.id!, depth + 1)];
         }, [] as (Categoria & { depth: number })[]);
     };
-
     return flatten(data);
   }, [data]);
 
   const columns = [
     columnHelper.accessor('imagen_url', {
-      header: 'Imagen',
-      cell: info => {
-        const url = info.getValue();
-        return (
-          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-cocoa/20">
-            <ImageWithFallback 
-              src={url}
-              alt="Categoría"
-              className="w-full h-full object-cover"
-              fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
-              showFallbackText={false}
-            />
-          </div>
-        );
-      },
+      header: 'Image',
+      cell: (info) => (
+        <div className="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant flex-shrink-0">
+          <ImageWithFallback
+            src={info.getValue()}
+            alt="Category"
+            className="w-full h-full object-cover"
+            fallbackClassName="w-full h-full bg-surface-container flex items-center justify-center"
+            showFallbackText={false}
+          />
+        </div>
+      ),
     }),
     columnHelper.accessor('nombre', {
-      header: 'Nombre',
-      cell: info => {
+      header: 'Name',
+      cell: (info) => {
         const depth = info.row.original.depth;
         return (
-          <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
-            {depth > 0 && <span className="text-gray-300">└─</span>}
-            <span className="font-semibold text-gray-900">{info.getValue()}</span>
+          <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 20}px` }}>
+            {depth > 0 && <span className="text-on-surface-variant opacity-40">└─</span>}
+            <p className="text-body-sm font-semibold text-on-surface">{info.getValue()}</p>
+            {depth === 0 && (
+              <span className="status-badge bg-surface-container text-on-surface-variant" style={{ fontSize: 10 }}>Root</span>
+            )}
           </div>
         );
       },
     }),
     columnHelper.accessor('descripcion', {
-      header: 'Descripción',
-      cell: info => <span className="text-gray-600 line-clamp-1">{info.getValue() || '-'}</span>,
+      header: 'Description',
+      cell: (info) => <span className="text-body-sm text-on-surface-variant line-clamp-1">{info.getValue() || '—'}</span>,
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Acciones',
-      cell: info => (
-        <div className="flex gap-2 justify-end">
-          <Button 
-            variant="secondary" 
-            onClick={() => onEdit(info.row.original)}
-            className="!p-2"
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={() => onDelete(info.row.original.id!)}
-            className="!p-2"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+      header: 'Actions',
+      cell: (info) => (
+        <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+          {isAdmin ? (
+            <>
+              <button onClick={() => onEdit!(info.row.original)}
+                className="btn-icon hover:bg-surface-container-high text-secondary" title="Edit">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+              </button>
+              <button onClick={() => onDelete!(info.row.original.id!)}
+                className="btn-icon hover:bg-error-container/30 text-error" title="Delete">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
+              </button>
+            </>
+          ) : (
+            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+          )}
         </div>
       ),
     }),
   ];
 
-  const table = useReactTable({
-    data: flattenedData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const table = useReactTable({ data: flattenedData, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-x-auto card !p-0">
-      <table className="w-full text-left">
-        <thead className="bg-cocoa border-b-2 border-cocoa/20">
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id} className="px-6 py-4 text-xs font-black text-white uppercase tracking-wider">
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
+    <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="table-header">
+            {table.getHeaderGroups()[0].headers.map((h) => (
+              <th key={h.id} className="table-th">{h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}</th>
+            ))}
+          </tr>
         </thead>
-        <tbody className="divide-y-2 divide-cocoa/20">
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id} className="hover:bg-cocoa/10 transition-colors">
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id} className="px-6 py-4">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+        <tbody className="divide-y divide-outline-variant">
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id} className="group hover:bg-surface-container-lowest transition-colors">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="table-td">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant">
+        <p className="text-body-sm text-on-surface-variant">Showing <span className="font-bold">{flattenedData.length}</span> categories</p>
+      </div>
     </div>
   );
 };

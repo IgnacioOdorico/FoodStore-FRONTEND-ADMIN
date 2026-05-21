@@ -6,139 +6,150 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import type { Producto } from '../types/producto';
-import { Button } from '../../../shared/ui/Button';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
-import { Pencil, Trash2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProductTableProps {
   data: Producto[];
-  onEdit: (producto: Producto) => void;
-  onDelete: (id: number) => void;
+  onEdit?:   (producto: Producto) => void;
+  onDelete?: (id: number) => void;
 }
+
+
+const StockBadge: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
+  if (qty === 0)  return <span className="status-badge bg-[#fadcd5] text-on-surface-variant">Out of Stock</span>;
+  if (qty < 5)    return <span className="status-badge bg-[#fde68a33] text-[#92400e]">Low Stock</span>;
+  return               <span className="status-badge bg-[#bbf7d033] text-[#166534]">In Stock</span>;
+};
+
+const StockBar: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
+  const pct = Math.min((qty / 100) * 100, 100);
+  const color = qty === 0 ? '#d1d5db' : qty < 5 ? '#f59e0b' : '#b22300';
+  return (
+    <div className="flex flex-col gap-xs">
+      <span className="text-body-sm text-on-surface">{qty} units</span>
+      <div className="w-24 h-1.5 bg-outline-variant rounded-full overflow-hidden">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  );
+};
 
 const columnHelper = createColumnHelper<Producto>();
 
 export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDelete }) => {
   const navigate = useNavigate();
+  const isAdmin  = !!(onEdit && onDelete);
+
   const columns = [
     columnHelper.accessor('nombre', {
-      header: 'Producto',
-      cell: info => (
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-cocoa/20 shadow-sm flex-shrink-0">
-            <ImageWithFallback 
-              src={info.row.original.imagen_url} 
+      header: 'Product',
+      cell: (info) => (
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant">
+            <ImageWithFallback
+              src={info.row.original.imagen_url}
               alt={info.getValue()}
               className="w-full h-full object-cover"
-              fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"
+              fallbackClassName="w-full h-full bg-surface-container flex items-center justify-center"
               showFallbackText={false}
             />
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-white uppercase italic tracking-tighter">{info.getValue()}</span>
-            <span className="text-[10px] text-white/50 line-clamp-1 italic">{info.row.original.descripcion}</span>
+          <div>
+            <p className="text-title-md font-semibold text-on-surface">{info.getValue()}</p>
+            <p className="text-body-sm text-on-surface-variant opacity-60 line-clamp-1">
+              {info.row.original.descripcion}
+            </p>
           </div>
         </div>
       ),
     }),
     columnHelper.display({
-      id: 'relations',
-      header: 'Categorías / Ingredientes',
-      cell: info => (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap gap-1">
-            {info.row.original.categorias?.map(c => (
-              <span key={c.id} className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase border ${c.es_principal ? 'bg-canvas text-brand-active border-cocoa/20' : 'bg-white/5 text-white/60 border-white/10'}`}>
-                {c.nombre}
-              </span>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {info.row.original.ingredientes?.map(i => (
-              <span key={i.id} className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase border ${i.es_alergeno ? 'bg-red-500/20 text-red-300 border-red-500/30' : 'bg-orange-500/20 text-orange-300 border-orange-500/30'}`}>
-                {i.nombre}
-              </span>
-            ))}
-          </div>
+      id: 'category',
+      header: 'Category',
+      cell: (info) => (
+        <div className="flex flex-wrap gap-1">
+          {info.row.original.categorias?.map((c) => (
+            <span key={c.id} className="text-label-caps px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant">
+              {c.nombre}
+            </span>
+          )) ?? <span className="text-body-sm text-on-surface-variant opacity-40">—</span>}
         </div>
       ),
     }),
     columnHelper.accessor('precio_base', {
-      header: 'Precio',
-      cell: info => <span className="font-mono font-black text-lg text-white drop-shadow-sm">${Number(info.getValue()).toLocaleString()}</span>,
-    }),
-    columnHelper.accessor('disponible', {
-      header: 'Estado',
-      cell: info => info.getValue() ? (
-        <span className="inline-flex items-center gap-1 text-white bg-white/10 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-white/10">
-          <CheckCircle className="w-3 h-3 text-white" /> Disponible
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1 text-red-300 bg-red-500/20 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-red-500/30">
-          <XCircle className="w-3 h-3" /> Pausado
+      header: 'Price',
+      cell: (info) => (
+        <span className="text-title-md font-semibold text-primary">
+          ${Number(info.getValue()).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
         </span>
       ),
     }),
+    columnHelper.accessor('stock_cantidad', {
+      header: 'Stock',
+      cell: (info) => <StockBar qty={info.getValue()} />,
+    }),
+    columnHelper.accessor('disponible', {
+      header: 'Status',
+      cell: (info) => <StockBadge qty={info.row.original.stock_cantidad} />,
+    }),
     columnHelper.display({
       id: 'actions',
-      header: 'Acciones',
-      cell: info => (
-        <div className="flex gap-2 justify-end">
-          <Button 
-            variant="secondary" 
-            onClick={() => navigate(`/products/${info.row.original.id}`)} 
-            className="!p-2 bg-white/10 text-white hover:bg-white/20 border border-white/10"
-            title="Ver Detalle"
+      header: 'Actions',
+      cell: (info) => (
+        <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+          <button
+            onClick={() => navigate(`/products/${info.row.original.id}`)}
+            className="btn-icon hover:bg-surface-container-high text-on-surface-variant"
+            title="View detail"
           >
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="secondary" 
-            onClick={() => onEdit(info.row.original)} 
-            className="!p-2 bg-white/10 text-white hover:bg-white/20 border border-white/10"
-            title="Editar"
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={() => onDelete(info.row.original.id!)}
-            className="!p-2 border border-red-500/30"
-            title="Eliminar"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
+          </button>
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => onEdit!(info.row.original)}
+                className="btn-icon hover:bg-surface-container-high text-secondary"
+                title="Edit"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+              </button>
+              <button
+                onClick={() => onDelete!(info.row.original.id!)}
+                className="btn-icon hover:bg-error-container/30 text-error"
+                title="Delete"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
+              </button>
+            </>
+          )}
+          {!isAdmin && (
+            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+          )}
         </div>
       ),
     }),
   ];
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-x-auto card !p-0 shadow-2xl">
-      <table className="w-full text-left">
-        <thead className="bg-cocoa border-b-2 border-cocoa/20">
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id} className="px-6 py-4 text-xs font-black text-white uppercase tracking-wider">
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
+    <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="table-header">
+            {table.getHeaderGroups()[0].headers.map((h) => (
+              <th key={h.id} className="table-th">
+                {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+              </th>
+            ))}
+          </tr>
         </thead>
-        <tbody className="divide-y-2 divide-cocoa/20">
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id} className="hover:bg-cocoa/10 transition-colors">
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id} className="px-6 py-4">
+        <tbody className="divide-y divide-outline-variant">
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id} className="group hover:bg-surface-container-lowest transition-colors">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="table-td">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
@@ -146,6 +157,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
           ))}
         </tbody>
       </table>
+      {/* Pagination placeholder */}
+      <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant flex items-center justify-between">
+        <p className="text-body-sm text-on-surface-variant">
+          Showing <span className="font-bold">{data.length}</span> products
+        </p>
+      </div>
     </div>
   );
 };

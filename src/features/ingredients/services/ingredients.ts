@@ -1,10 +1,10 @@
-import { apiFetch } from '../../../shared/services/api';
+import { api } from '../../../shared/services/api';
 import type { Ingrediente } from '../types/ingrediente';
 
 export const ingredientsService = {
-  getAll: () => apiFetch<Ingrediente[]>('/api/v1/ingredientes/'),
-  getById: (id: number) => apiFetch<Ingrediente>(`/api/v1/ingredientes/${id}`),
-  create: (data: Partial<Ingrediente>) => apiFetch<Ingrediente>('/api/v1/ingredientes/', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: Partial<Ingrediente>) => apiFetch<Ingrediente>(`/api/v1/ingredientes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id: number) => apiFetch<Ingrediente>(`/api/v1/ingredientes/${id}`, { method: 'DELETE' }),
+  getAll: () => api.get<Ingrediente[]>('/api/v1/ingredientes/').then((r) => r.data),
+  getById: (id: number) => api.get<Ingrediente>(`/api/v1/ingredientes/${id}`).then((r) => r.data),
+  create: (data: Partial<Ingrediente>) => api.post<Ingrediente>('/api/v1/ingredientes/', data).then((r) => r.data),
+  update: (id: number, data: Partial<Ingrediente>) => api.put<Ingrediente>(`/api/v1/ingredientes/${id}`, data).then((r) => r.data),
+  delete: (id: number) => api.delete(`/api/v1/ingredientes/${id}`).then((r) => r.data),
 };
