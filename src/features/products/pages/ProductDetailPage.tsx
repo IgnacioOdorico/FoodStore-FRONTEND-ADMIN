@@ -38,7 +38,7 @@ export const ProductDetailPage: React.FC = () => {
           <div className="absolute -inset-4 bg-cocoa/10 rounded-[3rem] blur-2xl group-hover:bg-cocoa/20 transition-all duration-700" />
           <div className="relative aspect-square rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
             <ImageWithFallback
-              src={product.imagen_url}
+              src={product.imagenes_url?.[0]}
               alt={product.nombre}
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
               fallbackClassName="w-full h-full bg-gradient-to-br from-cocoa/20 to-brand/20"

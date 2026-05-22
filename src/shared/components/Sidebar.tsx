@@ -47,7 +47,6 @@ export const Sidebar: React.FC = () => {
         {/* ADMIN + STOCK + PEDIDOS: catálogo */}
         {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
           <>
-            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
             <NavItem to="/products"    icon="inventory_2" label="Productos" />
             <NavItem to="/categories"  icon="category"    label="Categorías" />
             <NavItem to="/ingredients" icon="egg_alt"     label="Ingredientes" />
@@ -61,7 +60,10 @@ export const Sidebar: React.FC = () => {
 
         {/* Solo ADMIN: usuarios */}
         {hasRole('ADMIN') && (
-          <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
+          <>
+            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
+            <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
+          </>
         )}
       </nav>
 

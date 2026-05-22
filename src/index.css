@@ -148,15 +148,35 @@
     align-items: center;
   }
 
-  /* Scrollbar sutil */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #e5beb5; border-radius: 10px; }
   ::-webkit-scrollbar-thumb:hover { background: #907068; }
+  
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #e5beb5 transparent;
+  }
 }
 
-/*  Componentes reutilizables  */
 @layer components {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-outline-variant) transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-outline-variant);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-outline);
+  }
 
   /* Botón primario Stitch */
   .btn-primary {

@@ -11,7 +11,7 @@ export interface Producto {
     nombre: string;
     descripcion?: string;
     precio_base: number;
-    imagen_url?: string;
+    imagenes_url?: string[];
     stock_cantidad?: number;
     disponible: boolean;
 

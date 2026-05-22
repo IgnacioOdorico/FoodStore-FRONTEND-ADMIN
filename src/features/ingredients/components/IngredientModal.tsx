@@ -46,7 +46,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={ingredientSelected ? 'Editar Ingrediente' : 'Nuevo Ingrediente'}
-      maxWidth="xl"
+      maxWidth="2xl"
       footer={
         <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
@@ -82,7 +82,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
           name="descripcion"
           children={(field) => (
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Descripción</label>
+              <label className="text-label-caps text-on-surface-variant">Descripción</label>
               <textarea
                 className="input-field min-h-[80px]"
                 placeholder="Describe el ingrediente..."
@@ -105,7 +105,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
                 checked={field.state.value}
                 onChange={(e) => field.handleChange(e.target.checked)}
               />
-              <label htmlFor="es_alergeno" className="text-sm font-black uppercase text-red-300 cursor-pointer tracking-tighter">
+              <label htmlFor="es_alergeno" className="text-sm font-semibold text-error cursor-pointer">
                 ¿Es un alérgeno? (Ej: Lácteos, Gluten, Maní)
               </label>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 
 interface ImageWithFallbackProps {
@@ -17,6 +17,10 @@ export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   showFallbackText = true
 }) => {
   const [hasError, setHasError] = useState(!src);
+
+  useEffect(() => {
+    setHasError(!src);
+  }, [src]);
 
   if (hasError || !src) {
     return (

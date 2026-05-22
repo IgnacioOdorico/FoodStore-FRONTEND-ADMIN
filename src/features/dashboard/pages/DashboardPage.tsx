@@ -219,7 +219,7 @@ export const DashboardPage: React.FC = () => {
                     <span className="text-body-sm font-bold text-on-surface">
                       ${orden.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                     </span>
-                    <StatusBadge estado={orden.estado_actual} />
+                    <StatusBadge estado={orden.estado_codigo} />
                   </div>
                 </div>
               ))}

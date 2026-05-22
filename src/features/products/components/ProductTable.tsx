@@ -39,7 +39,7 @@ const columnHelper = createColumnHelper<Producto>();
 
 export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDelete }) => {
   const navigate = useNavigate();
-  const isAdmin  = !!(onEdit && onDelete);
+  const hasActions = !!(onEdit || onDelete);
 
   const columns = [
     columnHelper.accessor('nombre', {
@@ -48,7 +48,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant">
             <ImageWithFallback
-              src={info.row.original.imagen_url}
+              src={info.row.original.imagenes_url?.[0]}
               alt={info.getValue()}
               className="w-full h-full object-cover"
               fallbackClassName="w-full h-full bg-surface-container flex items-center justify-center"
@@ -97,7 +97,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
       id: 'actions',
       header: 'Acciones',
       cell: (info) => (
-        <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+        <div className={`flex justify-end gap-1 ${hasActions ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
           <button
             onClick={() => navigate(`/products/${info.row.original.id}`)}
             className="btn-icon hover:bg-surface-container-high text-on-surface-variant"
@@ -105,25 +105,25 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
           </button>
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => onEdit!(info.row.original)}
-                className="btn-icon hover:bg-surface-container-high text-secondary"
-                title="Editar"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
-              </button>
-              <button
-                onClick={() => onDelete!(info.row.original.id!)}
-                className="btn-icon hover:bg-error-container/30 text-error"
-                title="Eliminar"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
-              </button>
-            </>
+          {onEdit && (
+            <button
+              onClick={() => onEdit(info.row.original)}
+              className="btn-icon hover:bg-surface-container-high text-secondary"
+              title="Editar"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+            </button>
           )}
-          {!isAdmin && (
+          {onDelete && (
+            <button
+              onClick={() => onDelete(info.row.original.id!)}
+              className="btn-icon hover:bg-error-container/30 text-error"
+              title="Eliminar"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
+            </button>
+          )}
+          {!hasActions && (
             <span className="text-label-caps text-on-surface-variant/40">Solo lectura</span>
           )}
         </div>

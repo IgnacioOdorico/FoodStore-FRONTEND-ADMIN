@@ -43,13 +43,20 @@ export const dashboardService = {
     // Contar pedidos por estado
     const pedidosPorEstado: Record<string, number> = {};
     pedidos.forEach((p) => {
-      pedidosPorEstado[p.estado_actual] = (pedidosPorEstado[p.estado_actual] ?? 0) + 1;
+      pedidosPorEstado[p.estado_codigo] = (pedidosPorEstado[p.estado_codigo] ?? 0) + 1;
     });
 
     // Últimas 5 órdenes más recientes
     const ordenesRecientes = [...pedidos]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5);
+      .slice(0, 5)
+      .map(orden => {
+        const u = usuarios?.find(user => user.id === orden.usuario_id);
+        return {
+          ...orden,
+          usuario_nombre: u ? u.email : undefined,
+        };
+      });
 
     // Productos con stock bajo (< 10 o sin stock)
     const productosStockBajo = productos

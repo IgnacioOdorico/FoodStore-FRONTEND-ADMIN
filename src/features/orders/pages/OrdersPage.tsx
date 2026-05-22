@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../services/orders';
+import { usersService } from '../../admin/services/users';
+import { useAuthStore } from '../../../store/useAuthStore';
 import {
   type EstadoPedido,
   type Pedido,
@@ -89,15 +91,15 @@ const PedidoCard: React.FC<{
   onAvanzar: (id: number, nuevoEstado: EstadoPedido) => void;
   isLoading: boolean;
   isEntregado?: boolean;
-}> = ({ pedido, onAvanzar, isLoading, isEntregado }) => {
-  const transiciones = TRANSICIONES_VALIDAS[pedido.estado_actual];
+  usuarios?: any[];
+}> = ({ pedido, onAvanzar, isLoading, isEntregado, usuarios }) => {
+  const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
   const nextStates   = transiciones.filter((e) => e !== 'CANCELADO');
   const canCancel    = transiciones.includes('CANCELADO');
-  const isEnCamino   = pedido.estado_actual === 'EN_CAMINO';
+  const isEnCamino   = pedido.estado_codigo === 'EN_CAMINO';
 
-  const customerName = pedido.usuario_nombre
-    ? `${pedido.usuario_nombre} ${pedido.usuario_apellido ?? ''}`.trim()
-    : `Usuario #${pedido.usuario_id}`;
+  const u = usuarios?.find(user => user.id === pedido.usuario_id);
+  const customerName = u ? u.email : `Usuario #${pedido.usuario_id}`;
 
   if (isEntregado) {
     return (
@@ -227,7 +229,8 @@ const KanbanColumn: React.FC<{
   pedidos: Pedido[];
   onAvanzar: (id: number, estado: EstadoPedido) => void;
   isLoading: boolean;
-}> = ({ config, pedidos, onAvanzar, isLoading }) => {
+  usuarios?: any[];
+}> = ({ config, pedidos, onAvanzar, isLoading, usuarios }) => {
   const count = pedidos.length;
   const isTerminal = config.estado === 'ENTREGADO' || config.estado === 'CANCELADO';
 
@@ -258,6 +261,7 @@ const KanbanColumn: React.FC<{
               onAvanzar={onAvanzar}
               isLoading={isLoading}
               isEntregado={isTerminal}
+              usuarios={usuarios}
             />
           ))
         )}
@@ -269,12 +273,21 @@ const KanbanColumn: React.FC<{
 
 export const OrdersPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { hasRole } = useAuthStore();
+  const isAdmin = hasRole('ADMIN');
   const [search, setSearch] = useState('');
 
   const { data: pedidos, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['orders'],
     queryFn: () => ordersService.getAll(),
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
+  });
+
+  const { data: usuarios } = useQuery({
+    queryKey: ['usuarios'],
+    queryFn: usersService.getAll,
+    enabled: isAdmin,
+    retry: false,
   });
 
   const avanzarMutation = useMutation({
@@ -292,17 +305,12 @@ export const OrdersPage: React.FC = () => {
   const grupos = useMemo(() => {
     const all = pedidos ?? [];
     const filtered = search.trim()
-      ? all.filter(
-          (p) =>
-            String(p.id).includes(search) ||
-            (p.usuario_nombre ?? '').toLowerCase().includes(search.toLowerCase()) ||
-            (p.usuario_apellido ?? '').toLowerCase().includes(search.toLowerCase()),
-        )
+      ? all.filter((p) => String(p.id).includes(search))
       : all;
 
     return COLUMNAS.reduce(
       (acc, col) => {
-        acc[col.estado] = filtered.filter((p) => p.estado_actual === col.estado);
+        acc[col.estado] = filtered.filter((p) => p.estado_codigo === col.estado);
         return acc;
       },
       {} as Record<EstadoPedido, Pedido[]>,
@@ -312,7 +320,7 @@ export const OrdersPage: React.FC = () => {
   const totalActivos = useMemo(
     () =>
       (pedidos ?? []).filter(
-        (p) => p.estado_actual !== 'ENTREGADO' && p.estado_actual !== 'CANCELADO',
+        (p) => p.estado_codigo !== 'ENTREGADO' && p.estado_codigo !== 'CANCELADO',
       ).length,
     [pedidos],
   );
@@ -381,6 +389,7 @@ export const OrdersPage: React.FC = () => {
                 pedidos={grupos[col.estado] ?? []}
                 onAvanzar={handleAvanzar}
                 isLoading={avanzarMutation.isPending}
+                usuarios={usuarios}
               />
             ))}
           </div>

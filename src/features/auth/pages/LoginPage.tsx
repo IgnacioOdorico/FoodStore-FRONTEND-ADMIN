@@ -21,10 +21,16 @@ export const LoginPage = () => {
     const success = await login(email, password);
     if (!success) return;
     const { user } = useAuthStore.getState();
-    if (user && (user.roles.includes("ADMIN") || user.roles.includes("STOCK") || user.roles.includes("PEDIDOS"))) {
-      navigate("/dashboard");
-    } else {
-      navigate("/orders");
+    if (user) {
+      if (user.roles.includes("ADMIN")) {
+        navigate("/dashboard");
+      } else if (user.roles.includes("STOCK")) {
+        navigate("/products");
+      } else if (user.roles.includes("PEDIDOS")) {
+        navigate("/orders");
+      } else {
+        navigate("/profile");
+      }
     }
   };
 

@@ -6,7 +6,6 @@ export type EstadoPedido =
   | 'ENTREGADO'
   | 'CANCELADO';
 
-// Transiciones válidas según el backend
 export const TRANSICIONES_VALIDAS: Record<EstadoPedido, EstadoPedido[]> = {
   PENDIENTE:  ['CONFIRMADO', 'CANCELADO'],
   CONFIRMADO: ['EN_PREP',    'CANCELADO'],
@@ -35,14 +34,14 @@ export const ESTADO_COLORS: Record<EstadoPedido, string> = {
 };
 
 export interface DetallePedido {
-  id: number;
+  pedido_id: number;
   producto_id: number;
-  /** Snapshot inmutable del nombre al momento de la compra */
   nombre_snapshot: string;
-  /** Snapshot inmutable del precio al momento de la compra */
-  precio_unitario_snapshot: number;
+  precio_snapshot: number;
   cantidad: number;
-  subtotal: number;
+  subtotal_snap: number;
+  personalizacion?: number[];
+  created_at: string;
 }
 
 export interface AvanzarEstadoRequest {
@@ -61,10 +60,13 @@ export interface Pedido {
   id: number;
   usuario_id: number;
   usuario_nombre?: string;
-  usuario_apellido?: string;
-  estado_actual: EstadoPedido;
+  estado_codigo: EstadoPedido;
+  forma_pago_codigo: string;
+  subtotal: number;
+  descuento: number;
+  costo_envio: number;
   total: number;
-  forma_pago?: string;
+  notas?: string | null;
   detalles: DetallePedido[];
   historial?: HistorialEstado[];
   created_at: string;

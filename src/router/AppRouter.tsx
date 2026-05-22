@@ -43,7 +43,6 @@ const Layout = () => {
           <Route path="/forbidden" element={<ForbiddenPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "STOCK", "PEDIDOS"]} />}>
-            <Route path="/dashboard"    element={<DashboardPage />} />
             <Route path="/categories"   element={<CategoriesPage />} />
             <Route path="/products"     element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
@@ -56,6 +55,7 @@ const Layout = () => {
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/dashboard"    element={<DashboardPage />} />
             <Route path="/admin/users" element={<UsersPage />} />
           </Route>
 

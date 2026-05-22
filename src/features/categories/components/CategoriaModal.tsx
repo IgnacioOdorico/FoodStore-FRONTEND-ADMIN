@@ -53,7 +53,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={categoriaSelected ? 'Editar Categoría' : 'Nueva Categoría'}
-      maxWidth="xl"
+      maxWidth="2xl"
       footer={
         <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>
@@ -95,9 +95,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
           name="imagen_url"
           children={(field) => (
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">URL de Imagen (Ej: Cloudinary, Imgur)</label>
-              
-              {/* Previa de imagen */}
+              <label className="text-label-caps text-on-surface-variant">URL de Imagen (Opcional)</label>
               {field.state.value && (
                 <div className="relative w-full h-40 rounded-lg border-2 border-cocoa/20 overflow-hidden bg-canvas/30">
                   <img 
@@ -116,8 +114,6 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
                   </button>
                 </div>
               )}
-              
-              {/* Input URL */}
               <Input
                 label={field.state.value ? 'Cambiar URL de Imagen' : 'Pegar URL de Imagen'}
                 type="url"
@@ -128,7 +124,6 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
                 }}
                 onBlur={field.handleBlur}
               />
-              <p className="text-[10px] text-cocoa/50 italic">💡 Tip: Sube tu imagen a Cloudinary, Imgur o similar y pega la URL aquí</p>
             </div>
           )}
         />
@@ -137,15 +132,15 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
           name="parent_id"
           children={(field) => (
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Categoría Padre (Opcional)</label>
+              <label className="text-label-caps text-on-surface-variant">Categoría Padre (Opcional)</label>
               <select
                 className="input-field"
                 value={field.state.value ?? ''}
                 onChange={(e) => field.handleChange(e.target.value ? Number(e.target.value) : null)}
               >
-                <option value="" className="bg-brand text-white">Ninguna (Raíz)</option>
+                <option value="" className="bg-surface text-on-surface">Ninguna (Raíz)</option>
                 {possibleParents.map(c => (
-                  <option key={c.id} value={c.id} className="bg-brand text-white">{c.nombre}</option>
+                  <option key={c.id} value={c.id} className="bg-surface text-on-surface">{c.nombre}</option>
                 ))}
               </select>
             </div>
@@ -156,7 +151,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
           name="descripcion"
           children={(field) => (
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Descripción</label>
+              <label className="text-label-caps text-on-surface-variant">Descripción</label>
               <textarea
                 className="input-field min-h-[80px]"
                 placeholder="Describe la categoría..."

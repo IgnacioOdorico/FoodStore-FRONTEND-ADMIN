@@ -13,6 +13,8 @@ export const ProductsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { hasRole } = useAuthStore();
   const isAdmin = hasRole('ADMIN');
+  const isStock = hasRole('STOCK');
+  const canEdit = isAdmin || isStock;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected]   = useState<Producto | null>(null);
@@ -47,7 +49,7 @@ export const ProductsPage: React.FC = () => {
     onError: (e) => alert('Error al eliminar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
-  const handleOpen  = (p?: Producto) => { if (!isAdmin) return; setSelected(p || null); setModalOpen(true); };
+  const handleOpen  = (p?: Producto) => { if (!canEdit) return; setSelected(p || null); setModalOpen(true); };
   const handleClose = () => { setModalOpen(false); setSelected(null); };
   const handleDelete = (id: number) => {
     if (!isAdmin) return;
@@ -66,7 +68,7 @@ export const ProductsPage: React.FC = () => {
         <div>
           <h2 className="text-headline-lg font-bold text-on-surface">Gestión de Productos</h2>
           <p className="text-body-sm text-on-surface-variant mt-1">
-            {isAdmin ? 'Gestiona tu inventario, precios y niveles de stock.' : 'Vista de solo lectura — rol de personal.'}
+            {isAdmin ? 'Gestiona tu inventario, precios y niveles de stock.' : isStock ? 'Gestión de stock y disponibilidad.' : 'Vista de solo lectura.'}
           </p>
         </div>
         {isAdmin && (
@@ -107,14 +109,14 @@ export const ProductsPage: React.FC = () => {
       ) : products && products.length > 0 ? (
         <ProductTable
           data={products}
-          onEdit={isAdmin ? handleOpen : undefined}
+          onEdit={canEdit ? handleOpen : undefined}
           onDelete={isAdmin ? handleDelete : undefined}
         />
       ) : (
         <EmptyState message="Aún no hay productos registrados." />
       )}
 
-      {isAdmin && (
+      {canEdit && (
         <ProductModal
           isOpen={modalOpen}
           onClose={handleClose}

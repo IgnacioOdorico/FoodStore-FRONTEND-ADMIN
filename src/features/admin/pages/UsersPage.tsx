@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '../services/users';
 import { LoadingState, ErrorState, EmptyState } from '../../../shared/ui/States';
+import { Modal } from '../../../shared/ui/Modal';
 import type { Usuario, CreateUsuarioDto } from '../types/usuario';
 import type { IRole } from '../../../shared/types/auth.types';
 
@@ -38,9 +39,6 @@ const CreateEmployeeModal: React.FC<{
   const [form, setForm] = useState<CreateUsuarioDto>({
     nombre: '', apellido: '', email: '', password: '', celular: '', roles: ['STOCK'],
   });
-
-  if (!isOpen) return null;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(form);
@@ -50,70 +48,61 @@ const CreateEmployeeModal: React.FC<{
     setForm((prev) => ({ ...prev, [key]: val }));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface rounded-2xl shadow-modal w-full max-w-md border border-outline-variant animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="flex items-center justify-between p-md border-b border-outline-variant">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">person_add</span>
-            <h2 className="text-title-md font-semibold text-on-surface">Nuevo Empleado</h2>
-          </div>
-          <button onClick={onClose} className="btn-icon text-on-surface-variant">
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nuevo Empleado"
+      maxWidth="2xl"
+      footer={
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
+          <button type="submit" form="employee-form" disabled={isLoading} className="btn-primary disabled:opacity-50">
+            {isLoading ? (
+              <span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>progress_activity</span>
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
+            )}
+            Crear Empleado
           </button>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-md flex flex-col gap-md">
-          <div className="grid grid-cols-2 gap-gutter">
-            <div className="flex flex-col gap-1">
-              <label className="text-label-caps text-on-surface-variant">Nombre</label>
-              <input required className="input-field" value={form.nombre} onChange={(e) => set('nombre', e.target.value)} placeholder="Juan" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-label-caps text-on-surface-variant">Apellido</label>
-              <input required className="input-field" value={form.apellido} onChange={(e) => set('apellido', e.target.value)} placeholder="García" />
-            </div>
-          </div>
-
+      }
+    >
+      <form id="employee-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-label-caps text-on-surface-variant">Email</label>
-            <input required type="email" className="input-field" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="juan@foodstore.com" />
+            <label className="text-label-caps text-on-surface-variant">Nombre</label>
+            <input required className="input-field" value={form.nombre} onChange={(e) => set('nombre', e.target.value)} placeholder="Juan" />
           </div>
-
           <div className="flex flex-col gap-1">
-            <label className="text-label-caps text-on-surface-variant">Contraseña</label>
-            <input required type="password" className="input-field" value={form.password} onChange={(e) => set('password', e.target.value)} placeholder="••••••••" />
+            <label className="text-label-caps text-on-surface-variant">Apellido</label>
+            <input required className="input-field" value={form.apellido} onChange={(e) => set('apellido', e.target.value)} placeholder="García" />
           </div>
+        </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-label-caps text-on-surface-variant">Rol</label>
-            <select
-              className="input-field"
-              value={form.roles[0]}
-              onChange={(e) => set('roles', [e.target.value as IRole])}
-            >
-              <option value="ADMIN">Admin</option>
-              <option value="STOCK">Stock</option>
-              <option value="PEDIDOS">Cajero (Pedidos)</option>
-            </select>
-          </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-label-caps text-on-surface-variant">Email</label>
+          <input required type="email" className="input-field" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="juan@foodstore.com" />
+        </div>
 
-          <div className="flex justify-end gap-gutter mt-sm">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-            <button type="submit" disabled={isLoading} className="btn-primary disabled:opacity-50">
-              {isLoading ? (
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>progress_activity</span>
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
-              )}
-              Crear Empleado
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-label-caps text-on-surface-variant">Contraseña</label>
+          <input required type="password" className="input-field" value={form.password} onChange={(e) => set('password', e.target.value)} placeholder="••••••••" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-label-caps text-on-surface-variant">Rol</label>
+          <select
+            className="input-field"
+            value={form.roles[0]}
+            onChange={(e) => set('roles', [e.target.value as IRole])}
+          >
+            <option value="ADMIN">Admin</option>
+            <option value="STOCK">Stock</option>
+            <option value="PEDIDOS">Cajero (Pedidos)</option>
+          </select>
+        </div>
+      </form>
+    </Modal>
   );
 };
 
