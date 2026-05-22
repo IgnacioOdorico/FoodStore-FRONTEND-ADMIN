@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
           </div>
           <h1 className="text-headline-lg font-bold text-primary leading-none">FoodStore</h1>
         </div>
-        <p className="text-label-caps text-on-surface-variant opacity-70 pl-10">Management Portal</p>
+        <p className="text-label-caps text-on-surface-variant opacity-70 pl-10">Portal de Gestión</p>
       </div>
 
       {/* Navegación */}
@@ -47,33 +47,33 @@ export const Sidebar: React.FC = () => {
         {/* ADMIN + STOCK + PEDIDOS: catálogo */}
         {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
           <>
-            <NavItem to="/dashboard"   icon="dashboard"   label="Dashboard" />
-            <NavItem to="/products"    icon="inventory_2" label="Products" />
-            <NavItem to="/categories"  icon="category"    label="Categories" />
-            <NavItem to="/ingredients" icon="egg_alt"     label="Ingredients" />
+            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
+            <NavItem to="/products"    icon="inventory_2" label="Productos" />
+            <NavItem to="/categories"  icon="category"    label="Categorías" />
+            <NavItem to="/ingredients" icon="egg_alt"     label="Ingredientes" />
           </>
         )}
 
         {/* ADMIN + PEDIDOS: gestión de pedidos */}
         {hasRole('ADMIN', 'PEDIDOS') && (
-          <NavItem to="/orders" icon="shopping_cart" label="Orders" />
+          <NavItem to="/orders" icon="shopping_cart" label="Pedidos" />
         )}
 
         {/* Solo ADMIN: usuarios */}
         {hasRole('ADMIN') && (
-          <NavItem to="/admin/users" icon="manage_accounts" label="Users" />
+          <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
         )}
       </nav>
 
       {/* Footer */}
       <div className="mt-auto border-t border-outline-variant pt-md space-y-1">
-        <NavItem to="/profile" icon="person" label="Profile" />
+        <NavItem to="/profile" icon="person" label="Perfil" />
         <button
           onClick={handleLogout}
           className="nav-item w-full text-left text-error hover:bg-error-container/30"
         >
           <span className="material-symbols-outlined">logout</span>
-          <span>Logout</span>
+          <span>Cerrar sesión</span>
         </button>
       </div>
 

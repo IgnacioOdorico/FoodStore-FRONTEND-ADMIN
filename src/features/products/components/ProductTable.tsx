@@ -17,9 +17,9 @@ interface ProductTableProps {
 
 
 const StockBadge: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
-  if (qty === 0)  return <span className="status-badge bg-[#fadcd5] text-on-surface-variant">Out of Stock</span>;
-  if (qty < 5)    return <span className="status-badge bg-[#fde68a33] text-[#92400e]">Low Stock</span>;
-  return               <span className="status-badge bg-[#bbf7d033] text-[#166534]">In Stock</span>;
+  if (qty === 0)  return <span className="status-badge bg-[#fadcd5] text-on-surface-variant">Sin Stock</span>;
+  if (qty < 5)    return <span className="status-badge bg-[#fde68a33] text-[#92400e]">Stock Bajo</span>;
+  return               <span className="status-badge bg-[#bbf7d033] text-[#166534]">Con Stock</span>;
 };
 
 const StockBar: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
@@ -27,7 +27,7 @@ const StockBar: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
   const color = qty === 0 ? '#d1d5db' : qty < 5 ? '#f59e0b' : '#b22300';
   return (
     <div className="flex flex-col gap-xs">
-      <span className="text-body-sm text-on-surface">{qty} units</span>
+      <span className="text-body-sm text-on-surface">{qty} unidades</span>
       <div className="w-24 h-1.5 bg-outline-variant rounded-full overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
@@ -43,7 +43,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
 
   const columns = [
     columnHelper.accessor('nombre', {
-      header: 'Product',
+      header: 'Producto',
       cell: (info) => (
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant">
@@ -66,7 +66,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
     }),
     columnHelper.display({
       id: 'category',
-      header: 'Category',
+      header: 'Categoría',
       cell: (info) => (
         <div className="flex flex-wrap gap-1">
           {info.row.original.categorias?.map((c) => (
@@ -78,7 +78,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
       ),
     }),
     columnHelper.accessor('precio_base', {
-      header: 'Price',
+      header: 'Precio',
       cell: (info) => (
         <span className="text-title-md font-semibold text-primary">
           ${Number(info.getValue()).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
@@ -90,18 +90,18 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
       cell: (info) => <StockBar qty={info.getValue()} />,
     }),
     columnHelper.accessor('disponible', {
-      header: 'Status',
+      header: 'Estado',
       cell: (info) => <StockBadge qty={info.row.original.stock_cantidad} />,
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: 'Acciones',
       cell: (info) => (
         <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
           <button
             onClick={() => navigate(`/products/${info.row.original.id}`)}
             className="btn-icon hover:bg-surface-container-high text-on-surface-variant"
-            title="View detail"
+            title="Ver detalle"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
           </button>
@@ -110,21 +110,21 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
               <button
                 onClick={() => onEdit!(info.row.original)}
                 className="btn-icon hover:bg-surface-container-high text-secondary"
-                title="Edit"
+                title="Editar"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
               </button>
               <button
                 onClick={() => onDelete!(info.row.original.id!)}
                 className="btn-icon hover:bg-error-container/30 text-error"
-                title="Delete"
+                title="Eliminar"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
               </button>
             </>
           )}
           {!isAdmin && (
-            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+            <span className="text-label-caps text-on-surface-variant/40">Solo lectura</span>
           )}
         </div>
       ),
@@ -160,7 +160,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
       {/* Pagination placeholder */}
       <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant flex items-center justify-between">
         <p className="text-body-sm text-on-surface-variant">
-          Showing <span className="font-bold">{data.length}</span> products
+          Mostrando <span className="font-bold">{data.length}</span> productos
         </p>
       </div>
     </div>

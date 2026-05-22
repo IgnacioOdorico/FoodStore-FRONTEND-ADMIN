@@ -59,7 +59,7 @@ const CategoriaCard: React.FC<{
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col">
             <span className="text-label-caps text-on-surface-variant">SUBCATEGORÍAS</span>
-            <span className="text-title-md font-semibold text-on-surface">{subcategorias.length} items</span>
+            <span className="text-title-md font-semibold text-on-surface">{subcategorias.length} ítems</span>
           </div>
           {categoria.descripcion && (
             <p className="text-body-sm text-on-surface-variant line-clamp-1 max-w-[120px] text-right opacity-70">

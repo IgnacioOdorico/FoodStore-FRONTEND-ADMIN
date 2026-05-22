@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
             {/* ADMIN + STOCK + PEDIDOS: ven el catálogo */}
             {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
               <>
-                <NavItem to="/dashboard"   icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+                <NavItem to="/dashboard"   icon={<LayoutDashboard className="w-4 h-4" />} label="Panel de Control" />
                 <NavItem to="/products"    icon={<ShoppingBasket className="w-4 h-4" />}  label="Productos" />
                 <NavItem to="/categories"  icon={<LayoutDashboard className="w-4 h-4" />} label="Categorías" />
                 <NavItem to="/ingredients" icon={<UtensilsCrossed className="w-4 h-4" />} label="Ingredientes" />

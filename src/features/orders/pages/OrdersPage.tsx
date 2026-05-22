@@ -144,7 +144,7 @@ const PedidoCard: React.FC<{
         {(pedido.detalles ?? []).slice(0, 3).map((d) => (
           <p key={d.id} className="text-body-sm text-on-surface-variant flex justify-between">
             <span>{d.nombre_snapshot}</span>
-            <span className="text-on-surface font-bold">Qty {d.cantidad}</span>
+            <span className="text-on-surface font-bold">Cant. {d.cantidad}</span>
           </p>
         ))}
         {(pedido.detalles?.length ?? 0) > 3 && (
@@ -328,11 +328,11 @@ export const OrdersPage: React.FC = () => {
       {/* Top Action Bar */}
       <header className="flex justify-between items-end mb-lg flex-shrink-0">
         <div>
-          <h2 className="text-headline-lg font-bold text-on-surface">Order Dashboard</h2>
+          <h2 className="text-headline-lg font-bold text-on-surface">Tablero de Pedidos</h2>
           <div className="flex items-center gap-sm mt-xs">
             <span className="flex items-center gap-xs px-2 py-1 bg-primary/10 text-primary rounded-full text-label-caps" style={{ fontSize: 10 }}>
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse inline-block" />
-              LIVE FEED
+              EN VIVO
             </span>
             <span className="text-body-sm text-on-surface-variant">
               {totalActivos} pedido{totalActivos !== 1 ? 's' : ''} en progreso · actualizado {lastUpdated}

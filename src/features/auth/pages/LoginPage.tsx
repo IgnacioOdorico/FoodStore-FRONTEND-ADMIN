@@ -43,14 +43,14 @@ export const LoginPage = () => {
             </div>
           </div>
           <h1 className="text-headline-lg font-bold text-primary tracking-tight">FoodStore</h1>
-          <p className="text-body-lg text-on-surface-variant mt-1">Management Portal</p>
+          <p className="text-body-lg text-on-surface-variant mt-1">Portal de Gestión</p>
         </div>
 
         {/* Card */}
         <div className="bg-surface-container-lowest rounded-xl shadow-card border border-outline-variant/40 p-lg">
           <div className="mb-md">
-            <h2 className="text-title-md font-semibold text-on-surface">Welcome back</h2>
-            <p className="text-body-sm text-on-surface-variant mt-1">Please enter your administrative credentials.</p>
+            <h2 className="text-title-md font-semibold text-on-surface">¡Bienvenido de nuevo!</h2>
+            <p className="text-body-sm text-on-surface-variant mt-1">Por favor, introduce tus credenciales de administración.</p>
           </div>
 
           {error && (
@@ -63,7 +63,7 @@ export const LoginPage = () => {
           <form className="space-y-md" onSubmit={handleSubmit}>
             {/* Email */}
             <div className="space-y-xs">
-              <label className="text-label-caps text-on-surface-variant" htmlFor="email">Email Address</label>
+              <label className="text-label-caps text-on-surface-variant" htmlFor="email">Correo Electrónico</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="material-symbols-outlined text-on-surface-variant/60 group-focus-within:text-primary transition-colors" style={{ fontSize: 20 }}>mail</span>
@@ -80,7 +80,7 @@ export const LoginPage = () => {
 
             {/* Password */}
             <div className="space-y-xs">
-              <label className="text-label-caps text-on-surface-variant" htmlFor="password">Password</label>
+              <label className="text-label-caps text-on-surface-variant" htmlFor="password">Contraseña</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="material-symbols-outlined text-on-surface-variant/60 group-focus-within:text-primary transition-colors" style={{ fontSize: 20 }}>lock</span>
@@ -106,14 +106,14 @@ export const LoginPage = () => {
               className="btn-primary w-full justify-center text-title-md py-3">
               {loading
                 ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: 20 }}>progress_activity</span>
-                : <><span>Sign In</span><span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span></>
+                : <><span>Iniciar Sesión</span><span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span></>
               }
             </button>
           </form>
 
           {/* Dev quick-fill */}
           <div className="mt-xl pt-md border-t border-outline-variant/40">
-            <p className="text-label-caps text-on-surface-variant mb-sm">Dev accounts — click to fill</p>
+            <p className="text-label-caps text-on-surface-variant mb-sm">Cuentas de desarrollo — clic para rellenar</p>
             <div className="grid grid-cols-2 gap-xs">
               {DEV_ACCOUNTS.map((acc) => (
                 <button key={acc.role} type="button"
@@ -131,7 +131,7 @@ export const LoginPage = () => {
         <div className="mt-md flex justify-between items-center px-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-label-caps text-on-surface-variant opacity-60">Server: Online</span>
+            <span className="text-label-caps text-on-surface-variant opacity-60">Servidor: En línea</span>
           </div>
           <span className="text-label-caps text-on-surface-variant opacity-60">v2.4.0</span>
         </div>

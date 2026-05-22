@@ -31,12 +31,12 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, on
 
   const columns = [
     columnHelper.accessor('imagen_url', {
-      header: 'Image',
+      header: 'Imagen',
       cell: (info) => (
         <div className="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant flex-shrink-0">
           <ImageWithFallback
             src={info.getValue()}
-            alt="Category"
+            alt="Categoría"
             className="w-full h-full object-cover"
             fallbackClassName="w-full h-full bg-surface-container flex items-center justify-center"
             showFallbackText={false}
@@ -45,7 +45,7 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, on
       ),
     }),
     columnHelper.accessor('nombre', {
-      header: 'Name',
+      header: 'Nombre',
       cell: (info) => {
         const depth = info.row.original.depth;
         return (
@@ -53,34 +53,34 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, on
             {depth > 0 && <span className="text-on-surface-variant opacity-40">└─</span>}
             <p className="text-body-sm font-semibold text-on-surface">{info.getValue()}</p>
             {depth === 0 && (
-              <span className="status-badge bg-surface-container text-on-surface-variant" style={{ fontSize: 10 }}>Root</span>
+              <span className="status-badge bg-surface-container text-on-surface-variant" style={{ fontSize: 10 }}>Raíz</span>
             )}
           </div>
         );
       },
     }),
     columnHelper.accessor('descripcion', {
-      header: 'Description',
+      header: 'Descripción',
       cell: (info) => <span className="text-body-sm text-on-surface-variant line-clamp-1">{info.getValue() || '—'}</span>,
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: 'Acciones',
       cell: (info) => (
         <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
           {isAdmin ? (
             <>
               <button onClick={() => onEdit!(info.row.original)}
-                className="btn-icon hover:bg-surface-container-high text-secondary" title="Edit">
+                className="btn-icon hover:bg-surface-container-high text-secondary" title="Editar">
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
               </button>
               <button onClick={() => onDelete!(info.row.original.id!)}
-                className="btn-icon hover:bg-error-container/30 text-error" title="Delete">
+                className="btn-icon hover:bg-error-container/30 text-error" title="Eliminar">
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
               </button>
             </>
           ) : (
-            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+            <span className="text-label-caps text-on-surface-variant/40">Solo lectura</span>
           )}
         </div>
       ),
@@ -110,7 +110,7 @@ export const CategoriaTable: React.FC<CategoriaTableProps> = ({ data, onEdit, on
         </tbody>
       </table>
       <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant">
-        <p className="text-body-sm text-on-surface-variant">Showing <span className="font-bold">{flattenedData.length}</span> categories</p>
+        <p className="text-body-sm text-on-surface-variant">Mostrando <span className="font-bold">{flattenedData.length}</span> categorías</p>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, 
 
   const columns = [
     columnHelper.accessor('nombre', {
-      header: 'Ingredient',
+      header: 'Ingrediente',
       cell: (info) => (
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 border border-outline-variant">
@@ -25,7 +25,7 @@ export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, 
             <p className="text-body-sm font-semibold text-on-surface">{info.getValue()}</p>
             {info.row.original.es_alergeno && (
               <span className="status-badge bg-[#ffdad6] text-[#93000a] mt-0.5" style={{ fontSize: 10 }}>
-                Allergen
+                Alérgeno
               </span>
             )}
           </div>
@@ -33,33 +33,33 @@ export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, 
       ),
     }),
     columnHelper.accessor('descripcion', {
-      header: 'Description',
+      header: 'Descripción',
       cell: (info) => <span className="text-body-sm text-on-surface-variant line-clamp-1">{info.getValue() || '—'}</span>,
     }),
     columnHelper.accessor('es_alergeno', {
-      header: 'Allergen',
+      header: 'Alérgeno',
       cell: (info) => info.getValue()
-        ? <span className="status-badge bg-[#ffdad6] text-[#93000a]">Yes</span>
+        ? <span className="status-badge bg-[#ffdad6] text-[#93000a]">Sí</span>
         : <span className="status-badge bg-[#bbf7d033] text-[#166534]">No</span>,
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: 'Acciones',
       cell: (info) => (
         <div className={`flex justify-end gap-1 ${isAdmin ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
           {isAdmin ? (
             <>
               <button onClick={() => onEdit!(info.row.original)}
-                className="btn-icon hover:bg-surface-container-high text-secondary" title="Edit">
+                className="btn-icon hover:bg-surface-container-high text-secondary" title="Editar">
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
               </button>
               <button onClick={() => onDelete!(info.row.original.id!)}
-                className="btn-icon hover:bg-error-container/30 text-error" title="Delete">
+                className="btn-icon hover:bg-error-container/30 text-error" title="Eliminar">
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>delete</span>
               </button>
             </>
           ) : (
-            <span className="text-label-caps text-on-surface-variant/40">Read-only</span>
+            <span className="text-label-caps text-on-surface-variant/40">Solo lectura</span>
           )}
         </div>
       ),
@@ -89,7 +89,7 @@ export const IngredientTable: React.FC<IngredientTableProps> = ({ data, onEdit, 
         </tbody>
       </table>
       <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant">
-        <p className="text-body-sm text-on-surface-variant">Showing <span className="font-bold">{data.length}</span> ingredients</p>
+        <p className="text-body-sm text-on-surface-variant">Mostrando <span className="font-bold">{data.length}</span> ingredientes</p>
       </div>
     </div>
   );

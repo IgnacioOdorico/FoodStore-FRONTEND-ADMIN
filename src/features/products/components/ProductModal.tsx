@@ -250,7 +250,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                               min="0.1"
                               step="0.1"
                               className="w-12 input-field text-xs"
-                              placeholder="Qty"
+                              placeholder="Cant."
                               value={selected.cantidad}
                               onChange={(e) => {
                                 const updated = field.state.value.map(i => 

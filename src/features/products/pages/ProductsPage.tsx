@@ -64,15 +64,15 @@ export const ProductsPage: React.FC = () => {
 
       <header className="flex justify-between items-center">
         <div>
-          <h2 className="text-headline-lg font-bold text-on-surface">Products Management</h2>
+          <h2 className="text-headline-lg font-bold text-on-surface">Gestión de Productos</h2>
           <p className="text-body-sm text-on-surface-variant mt-1">
-            {isAdmin ? 'Manage your inventory, prices, and stock levels.' : 'Read-only view — staff role.'}
+            {isAdmin ? 'Gestiona tu inventario, precios y niveles de stock.' : 'Vista de solo lectura — rol de personal.'}
           </p>
         </div>
         {isAdmin && (
           <button onClick={() => handleOpen()} className="btn-primary">
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add</span>
-            Add New Product
+            Agregar Nuevo Producto
           </button>
         )}
       </header>
@@ -80,22 +80,22 @@ export const ProductsPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter">
         <div className="kpi-card">
           <span className="material-symbols-outlined text-primary mb-xs">inventory</span>
-          <span className="text-label-caps text-on-surface-variant">Total Products</span>
+          <span className="text-label-caps text-on-surface-variant">Productos Totales</span>
           <span className="text-headline-lg font-bold text-on-surface">{total}</span>
         </div>
         <div className="kpi-card">
           <span className="material-symbols-outlined text-tertiary mb-xs">warning</span>
-          <span className="text-label-caps text-on-surface-variant">Low Stock</span>
+          <span className="text-label-caps text-on-surface-variant">Stock Bajo</span>
           <span className="text-headline-lg font-bold text-on-surface">{lowStock}</span>
         </div>
         <div className="kpi-card">
           <span className="material-symbols-outlined text-error mb-xs">remove_shopping_cart</span>
-          <span className="text-label-caps text-on-surface-variant">Out of Stock</span>
+          <span className="text-label-caps text-on-surface-variant">Sin Stock</span>
           <span className="text-headline-lg font-bold text-on-surface">{outOfStock}</span>
         </div>
         <div className="kpi-card">
           <span className="material-symbols-outlined text-primary mb-xs">check_circle</span>
-          <span className="text-label-caps text-on-surface-variant">Available</span>
+          <span className="text-label-caps text-on-surface-variant">Disponibles</span>
           <span className="text-headline-lg font-bold text-on-surface">{available}</span>
         </div>
       </div>
@@ -111,7 +111,7 @@ export const ProductsPage: React.FC = () => {
           onDelete={isAdmin ? handleDelete : undefined}
         />
       ) : (
-        <EmptyState message="No products registered yet." />
+        <EmptyState message="Aún no hay productos registrados." />
       )}
 
       {isAdmin && (
