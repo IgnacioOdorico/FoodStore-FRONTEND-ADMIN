@@ -279,7 +279,7 @@ export const OrdersPage: React.FC = () => {
 
   const avanzarMutation = useMutation({
     mutationFn: ({ id, estado }: { id: number; estado: EstadoPedido }) =>
-      ordersService.avanzarEstado(id, estado),
+      ordersService.avanzarEstado(id, { estado_hacia: estado }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
     onError: (e) => alert('Error al cambiar estado: ' + (e instanceof Error ? e.message : 'Error desconocido')),
   });

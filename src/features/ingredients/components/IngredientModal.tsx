@@ -46,15 +46,22 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={ingredientSelected ? 'Editar Ingrediente' : 'Nuevo Ingrediente'}
-      maxWidth="md"
+      maxWidth="xl"
+      footer={
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" isLoading={isLoading} form="ingredient-form">{ingredientSelected ? 'Actualizar' : 'Crear'} Ingrediente</Button>
+        </div>
+      }
     >
       <form 
+        id="ingredient-form"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-6 w-full overflow-x-hidden"
       >
         <form.Field
           name="nombre"
@@ -74,7 +81,7 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
         <form.Field
           name="descripcion"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Descripción</label>
               <textarea
                 className="input-field min-h-[80px]"
@@ -102,13 +109,9 @@ export const IngredientModal: React.FC<IngredientModalProps> = ({
                 ¿Es un alérgeno? (Ej: Lácteos, Gluten, Maní)
               </label>
             </div>
-          )}
-        />
+           )}
+         />
 
-        <div className="flex justify-end gap-3 mt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" isLoading={isLoading}>{ingredientSelected ? 'Actualizar' : 'Crear'} Ingrediente</Button>
-        </div>
       </form>
     </Modal>
   );

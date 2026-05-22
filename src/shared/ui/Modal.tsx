@@ -6,6 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
@@ -19,6 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose, 
   title, 
   children,
+  footer,
   maxWidth = 'md' 
 }) => {
   // Si el modal no está abierto, no renderizo NADA.
@@ -35,33 +37,40 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     // 'fixed inset-0' ocupa toda la pantalla y el z-50 lo pone por encima de todo.
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       {/* OVERLAY: Es el fondo oscuro con el efecto de blur. Al hacer click, se cierra el modal. */}
       <div 
-        className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-200" 
+        style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(17,24,39,0.6)', backdropFilter: 'blur(4px)' }}
         onClick={onClose} 
       />
       
-      {/* CONTENEDOR: El 'card' principal con sombra y bordes Cocoa. */}
-      <div className={`relative card w-full ${maxWidthClasses[maxWidth]} animate-in fade-in zoom-in duration-200 shadow-2xl border-2 border-cocoa/20 max-h-[90vh] flex flex-col !p-0`}>
+      {/* CONTENEDOR: El 'card' principal con sombra y bordes Cocoa. Flexbox para manejar layout vertical */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '640px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: '1.5rem', overflow: 'hidden', backgroundColor: 'white', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
         
-        {/* HEADER: Color Cocoa Brown con tipografía Black/Italic. Es el sello del branding. */}
-        <div className="flex justify-between items-center p-6 bg-cocoa border-b-2 border-cocoa/20 rounded-t-2xl sticky top-0 z-10">
-          <h2 className="text-xl font-black text-white uppercase tracking-tighter italic">
+        {/* HEADER */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', backgroundColor: '#6B4226', borderBottom: '2px solid rgba(107,66,38,0.2)', flexShrink: 0 }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '-0.05em', fontStyle: 'italic' }}>
             {title}
           </h2>
           <button 
             onClick={onClose} 
-            className="text-white/40 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+            style={{ color: 'rgba(255,255,255,0.4)', padding: '0.25rem', borderRadius: '0.5rem', flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         </div>
 
-        {/* CONTENIDO: Con scroll interno para que el modal no se escape si el formulario es muy largo. */}
-        <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-cocoa/20 scrollbar-track-transparent">
+        {/* CONTENIDO */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '2rem 1.5rem', width: '100%' }}>
           {children}
         </div>
+
+        {/* FOOTER */}
+        {footer && (
+          <div style={{ borderTop: '2px solid rgba(107,66,38,0.2)', padding: '1rem 1.5rem', flexShrink: 0 }}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

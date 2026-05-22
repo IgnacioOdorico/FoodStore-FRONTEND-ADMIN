@@ -82,14 +82,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       onClose={onClose}
       title={productoSelected ? 'Editar Producto' : 'Nuevo Producto'}
       maxWidth="2xl"
+      footer={
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" isLoading={isLoading} form="product-form">{productoSelected ? 'Actualizar' : 'Crear'} Producto</Button>
+        </div>
+      }
     >
       <form 
+        id="product-form"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="flex flex-col gap-6"
+        className="flex flex-col gap-6 w-full overflow-x-hidden"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <form.Field
@@ -127,7 +134,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         <form.Field
           name="imagen_url"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">URL de Imagen (Ej: Cloudinary, Imgur)</label>
               
                {/* Previa de imagen */}
@@ -169,7 +176,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         <form.Field
           name="descripcion"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Descripción</label>
               <textarea className="input-field min-h-[60px]" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} />
             </div>
@@ -290,11 +297,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </label>
           )}
         />
-
-        <div className="flex justify-end gap-3 mt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" isLoading={isLoading}>{productoSelected ? 'Actualizar' : 'Crear'} Producto</Button>
-        </div>
       </form>
     </Modal>
   );

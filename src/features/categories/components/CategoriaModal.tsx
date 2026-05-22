@@ -53,15 +53,26 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={categoriaSelected ? 'Editar Categoría' : 'Nueva Categoría'}
-      maxWidth="md"
+      maxWidth="xl"
+      footer={
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" isLoading={isLoading} form="categoria-form">
+            {categoriaSelected ? 'Actualizar' : 'Crear'} Categoría
+          </Button>
+        </div>
+      }
     >
       <form 
+        id="categoria-form"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-6 w-full overflow-x-hidden"
       >
         <form.Field
           name="nombre"
@@ -83,7 +94,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
         <form.Field
           name="imagen_url"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">URL de Imagen (Ej: Cloudinary, Imgur)</label>
               
               {/* Previa de imagen */}
@@ -125,7 +136,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
         <form.Field
           name="parent_id"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Categoría Padre (Opcional)</label>
               <select
                 className="input-field"
@@ -144,7 +155,7 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
         <form.Field
           name="descripcion"
           children={(field) => (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-black text-cocoa uppercase tracking-widest italic">Descripción</label>
               <textarea
                 className="input-field min-h-[80px]"
@@ -154,17 +165,9 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
                 onChange={(e) => field.handleChange(e.target.value)}
               />
             </div>
-          )}
-        />
+           )}
+         />
 
-        <div className="flex justify-end gap-3 mt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" isLoading={isLoading}>
-            {categoriaSelected ? 'Actualizar' : 'Crear'} Categoría
-          </Button>
-        </div>
       </form>
     </Modal>
   );

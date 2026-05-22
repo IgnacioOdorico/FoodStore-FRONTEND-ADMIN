@@ -45,6 +45,11 @@ export interface DetallePedido {
   subtotal: number;
 }
 
+export interface AvanzarEstadoRequest {
+  estado_hacia: EstadoPedido;
+  motivo?: string;
+}
+
 export interface HistorialEstado {
   id: number;
   estado: EstadoPedido;
