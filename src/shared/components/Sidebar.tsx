@@ -44,6 +44,15 @@ export const Sidebar: React.FC = () => {
 
       {/* Navegación */}
       <nav className="flex-1 space-y-1">
+        
+        {/* Solo ADMIN: usuarios */}
+        {hasRole('ADMIN') && (
+          <>
+            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
+            <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
+          </>
+        )}
+
         {/* ADMIN + STOCK + PEDIDOS: catálogo */}
         {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
           <>
@@ -58,13 +67,6 @@ export const Sidebar: React.FC = () => {
           <NavItem to="/orders" icon="shopping_cart" label="Pedidos" />
         )}
 
-        {/* Solo ADMIN: usuarios */}
-        {hasRole('ADMIN') && (
-          <>
-            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
-            <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
-          </>
-        )}
       </nav>
 
       {/* Footer */}

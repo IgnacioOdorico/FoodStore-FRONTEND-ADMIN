@@ -155,11 +155,6 @@ export const LoginPage = () => {
 
         {/* Footer status */}
         <div className="mt-md flex justify-between items-center px-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-label-caps text-on-surface-variant opacity-60">Servidor: En línea</span>
-          </div>
-          <span className="text-label-caps text-on-surface-variant opacity-60">v2.4.0</span>
         </div>
       </main>
     </div>

@@ -21,3 +21,9 @@ export interface CreateUsuarioDto {
   celular?: string;
   roles: IRole[];
 }
+
+export interface UpdateUsuarioDto {
+  nombre?: string;
+  apellido?: string;
+  celular?: string;
+}
