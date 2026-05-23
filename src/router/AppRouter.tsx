@@ -59,7 +59,7 @@ const Layout = () => {
             <Route path="/admin/users" element={<UsersPage />} />
           </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={["ADMIN", "STOCK", "PEDIDOS", "CLIENT"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN", "STOCK", "PEDIDOS"]} />}>
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

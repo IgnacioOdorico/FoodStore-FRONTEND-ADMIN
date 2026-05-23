@@ -2,6 +2,8 @@ import { useState, type SyntheticEvent } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
+const STAFF_ROLES = ["ADMIN", "STOCK", "PEDIDOS"] as const;
+
 const DEV_ACCOUNTS = [
   { role: "ADMIN",   email: "admin@nachopizza.com",   pass: "Admin1234!" },
   { role: "STOCK",   email: "stock@nachopizza.com",   pass: "Stock1234!" },
@@ -10,27 +12,41 @@ const DEV_ACCOUNTS = [
 ];
 
 export const LoginPage = () => {
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const { login, loading, error } = useAuthStore();
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [showPass, setShowPass]   = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+  const { login, logout, loading, error } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setPortalError(null);
     const success = await login(email, password);
     if (!success) return;
+
     const { user } = useAuthStore.getState();
-    if (user) {
-      if (user.roles.includes("ADMIN")) {
-        navigate("/dashboard");
-      } else if (user.roles.includes("STOCK")) {
-        navigate("/products");
-      } else if (user.roles.includes("PEDIDOS")) {
-        navigate("/orders");
-      } else {
-        navigate("/profile");
-      }
+    if (!user) return;
+
+    // Verificar que tenga al menos un rol de staff
+    const isStaff = user.roles.some((r) => STAFF_ROLES.includes(r as typeof STAFF_ROLES[number]));
+    if (!isStaff) {
+      // Cuenta de cliente — no tiene acceso a este portal
+      logout();
+      setPortalError(
+        "Este portal es exclusivo para el personal de FoodStore. " +
+        "Los clientes deben acceder desde la app de clientes."
+      );
+      return;
+    }
+
+    // Redirigir según rol
+    if (user.roles.includes("ADMIN")) {
+      navigate("/dashboard");
+    } else if (user.roles.includes("STOCK")) {
+      navigate("/products");
+    } else if (user.roles.includes("PEDIDOS")) {
+      navigate("/orders");
     }
   };
 
@@ -59,10 +75,14 @@ export const LoginPage = () => {
             <p className="text-body-sm text-on-surface-variant mt-1">Por favor, introduce tus credenciales de administración.</p>
           </div>
 
-          {error && (
-            <div className="mb-md px-4 py-3 bg-error-container rounded-lg border border-error/20 flex items-center gap-2">
-              <span className="material-symbols-outlined text-error" style={{ fontSize: 18 }}>error</span>
-              <p className="text-body-sm text-on-error-container font-semibold">{error}</p>
+          {(error || portalError) && (
+            <div className="mb-md px-4 py-3 bg-error-container rounded-lg border border-error/20 flex items-start gap-2">
+              <span className="material-symbols-outlined text-error flex-shrink-0" style={{ fontSize: 18 }}>
+                {portalError ? "block" : "error"}
+              </span>
+              <p className="text-body-sm text-on-error-container font-semibold">
+                {portalError ?? error}
+              </p>
             </div>
           )}
 
