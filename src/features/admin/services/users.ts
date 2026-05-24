@@ -7,11 +7,11 @@ export const usersService = {
   getAll: () =>
     api.get<Usuario[]>(BASE).then((r) => r.data),
 
-  /** Registrar nuevo empleado — usa el endpoint público de registro */
+  /** Crear empleado  — endpoint exclusivo para admin */
   create: (data: CreateUsuarioDto) => {
     const payload = { ...data };
     if (!payload.celular) delete payload.celular;
-    return api.post<Usuario>('/api/v1/auth/register', payload).then((r) => r.data);
+    return api.post<Usuario>(BASE, payload).then((r) => r.data);
   },
 
   /** Editar nombre, apellido o celular de cualquier usuario */
