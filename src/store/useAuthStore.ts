@@ -1,12 +1,15 @@
 import { create } from "zustand";
-import { apiLogin, apiFetch } from "../shared/services/api";
+import { apiLogin, apiFetch, updateActivity, clearActivity, isSessionExpiredByInactivity } from "../shared/services/api";
 import type { IRole, IUser } from "../shared/types/auth.types";
 
 interface AuthState {
   user: IUser | null;
   loading: boolean;
   error: string | null;
+  /** true cuando ya se intentó restaurar la sesión al arrancar (con o sin éxito) */
+  initialized: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  /** Intenta restaurar la sesión desde la cookie existente. Llamar al arrancar la app. */
   fetchUser: () => Promise<void>;
   logout: VoidFunction;
   hasRole: (...roles: IRole[]) => boolean;
@@ -16,14 +19,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: false,
   error: null,
+  initialized: false,
 
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
       await apiLogin(email, password);
-      // Después del login exitoso, pedimos los datos del usuario
       const user = await apiFetch<IUser>("/api/v1/auth/me");
-      set({ user, loading: false });
+      updateActivity(); // registrar actividad al iniciar sesión
+      set({ user, loading: false, initialized: true });
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al iniciar sesión";
@@ -33,17 +37,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchUser: async () => {
+    // Si pasaron más de 30 min sin actividad, no restaurar sesión
+    if (isSessionExpiredByInactivity()) {
+      clearActivity();
+      set({ user: null, initialized: true });
+      return;
+    }
     try {
       const user = await apiFetch<IUser>("/api/v1/auth/me");
-      set({ user });
+      set({ user, initialized: true });
     } catch {
-      set({ user: null });
+      set({ user: null, initialized: true });
     }
   },
 
   logout: () => {
     apiFetch("/api/v1/auth/logout", { method: "POST" }).catch(() => {});
-    set({ user: null });
+    clearActivity(); // limpiar registro de actividad al cerrar sesión
+    set({ user: null, initialized: true });
   },
 
   hasRole: (...roles) => {

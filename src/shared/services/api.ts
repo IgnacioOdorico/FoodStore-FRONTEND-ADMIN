@@ -2,67 +2,53 @@ import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
+// ── Inactividad max de 30 minutos ─────────────────────────────────────────────
+const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+
+export const updateActivity = () => {
+  localStorage.setItem('last_activity', Date.now().toString());
+};
+
+export const clearActivity = () => {
+  localStorage.removeItem('last_activity');
+};
+
+export const isSessionExpiredByInactivity = (): boolean => {
+  const val = localStorage.getItem('last_activity');
+  if (!val) return true;
+  return Date.now() - parseInt(val, 10) > INACTIVITY_LIMIT_MS;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,           // envía la cookie httpOnly automáticamente
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
-
 
 api.interceptors.request.use(
   (config) => config,
   (error) => Promise.reject(error),
 );
 
-
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)));
-  failedQueue = [];
-};
+const isOnLoginPage = () =>
+  window.location.pathname === '/login' || window.location.pathname === '/forbidden';
 
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // 401 en endpoints que no son login ni refresh
+  (response) => {
+    updateActivity(); // renovar timer de inactividad en cada respuesta exitosa
+    return response;
+  },
+  (error) => {
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/refresh') &&
-      !originalRequest.url?.includes('/auth/token')
+      !error.config?.url?.includes('/auth/token') &&
+      !isOnLoginPage()
     ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        await api.post('/api/v1/auth/refresh');
-        processQueue(null);
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError);
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+      clearActivity();
+      window.location.href = '/login';
     }
 
-    // Extraer mensaje de error legible de FastAPI
     const message =
       error.response?.data?.detail ||
       error.message ||
@@ -91,7 +77,7 @@ export async function apiFetch<T = unknown>(
   const cfg = { headers: options.headers };
 
   let response;
-  if (method === 'GET')    response = await api.get<T>(endpoint, cfg);
+  if (method === 'GET')         response = await api.get<T>(endpoint, cfg);
   else if (method === 'DELETE') response = await api.delete<T>(endpoint, cfg);
   else if (method === 'POST')   response = await api.post<T>(endpoint, body, cfg);
   else if (method === 'PUT')    response = await api.put<T>(endpoint, body, cfg);

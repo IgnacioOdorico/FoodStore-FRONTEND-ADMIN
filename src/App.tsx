@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from './router/AppRouter';
+import { useAuthStore } from './store/useAuthStore';
 
-// Motor de TanStack Query para toda la app
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -11,12 +12,41 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Shell de inicialización: intenta restaurar la sesión desde la cookie
+ * antes de renderizar el router. Mientras no se resuelva, muestra un
+ * spinner centrado para que ProtectedRoute nunca vea un user: null falso.
+ */
+function AppShell() {
+  const { initialized, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    fetchUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-button">
+            <span className="material-symbols-outlined text-on-primary animate-spin" style={{ fontSize: 28 }}>
+              progress_activity
+            </span>
+          </div>
+          <p className="text-body-sm text-on-surface-variant">Verificando sesión…</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <AppRouter />;
+}
+
 function App() {
   return (
-    // QueryClientProvider envuelve todo para que cualquier componente pueda usar useQuery.
-    // BrowserRouter vive dentro de AppRouter (patrón del profesor).
     <QueryClientProvider client={queryClient}>
-      <AppRouter />
+      <AppShell />
     </QueryClientProvider>
   );
 }
