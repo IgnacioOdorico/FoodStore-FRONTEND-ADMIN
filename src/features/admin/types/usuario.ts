@@ -26,4 +26,6 @@ export interface UpdateUsuarioDto {
   nombre?: string;
   apellido?: string;
   celular?: string;
+  email?: string;
+  roles?: IRole[];
 }
