@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '../services/users';
 import { LoadingState, ErrorState, EmptyState } from '../../../shared/ui/States';
@@ -72,7 +73,7 @@ const ConfirmModal: React.FC<{
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-sm bg-surface rounded-2xl shadow-modal border border-outline-variant animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="relative bg-surface rounded-2xl shadow-modal border border-outline-variant overflow-hidden" style={{ width: '100%', maxWidth: 420 }}>
         {/* Body */}
         <div className="p-lg flex flex-col items-center text-center gap-md">
           {/* Icon */}
@@ -206,117 +207,126 @@ const CreateEmployeeModal: React.FC<{
   );
 };
 
-// Edit Modal 
+// Edit Modal — portal propio para evitar problemas de tamaño con el Modal compartido
 const EditEmployeeModal: React.FC<{
   user: Usuario | null;
   onClose: () => void;
   onSave: (id: number, d: UpdateUsuarioDto) => void;
   isLoading: boolean;
 }> = ({ user, onClose, onSave, isLoading }) => {
-  const [form, setForm] = useState<UpdateUsuarioDto>({
-    nombre: '',
-    apellido: '',
-    celular: '',
-  });
+  const [form, setForm] = useState<UpdateUsuarioDto>({ nombre: '', apellido: '', celular: '' });
 
   React.useEffect(() => {
-    if (user) {
-      setForm({ nombre: user.nombre, apellido: user.apellido, celular: user.celular ?? '' });
-    }
+    if (user) setForm({ nombre: user.nombre, apellido: user.apellido, celular: user.celular ?? '' });
   }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (user) onSave(user.id, form);
-  };
+  if (!user) return null;
 
-  return (
-    <Modal
-      isOpen={!!user}
-      onClose={onClose}
-      title="Editar Empleado"
-      maxWidth="2xl"
-      footer={
-        <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
-          <button type="submit" form="edit-employee-form" disabled={isLoading} className="btn-primary disabled:opacity-50">
-            {isLoading
-              ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>progress_activity</span>
-              : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>save</span>
-            }
-            Guardar Cambios
-          </button>
-        </div>
-      }
-    >
-      <form id="edit-employee-form" onSubmit={handleSubmit} className="flex flex-col gap-md">
-        {/* Avatar + email (read-only) */}
-        <div className="flex items-center gap-md p-md bg-surface-container-low rounded-xl border border-outline-variant">
-          <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
-            <span className="text-title-md font-bold text-on-primary-fixed">
-              {user ? getInitials(user) : ''}
-            </span>
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave(user.id, form); };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Dialog — ancho fijo explícito para evitar colapso */}
+      <div className="relative w-full" style={{ maxWidth: 560 }}>
+        <div className="bg-surface rounded-2xl border border-outline-variant shadow-modal flex flex-col overflow-hidden">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-lg py-md bg-primary shrink-0">
+            <h2 className="text-title-md font-semibold text-white">Editar Empleado</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+            </button>
           </div>
-          <div className="flex flex-col min-w-0">
-            <p className="text-body-sm font-semibold text-on-surface truncate">
-              {user?.nombre} {user?.apellido}
-            </p>
-            <p className="text-body-sm text-on-surface-variant truncate">{user?.email}</p>
+
+          {/* Body */}
+          <form id="edit-employee-form" onSubmit={handleSubmit} className="p-lg flex flex-col gap-md overflow-y-auto">
+
+            {/* Perfil read-only */}
+            <div className="flex items-center gap-md p-md bg-surface-container-low rounded-xl border border-outline-variant">
+              <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+                <span className="text-title-md font-bold text-on-primary-fixed">{getInitials(user)}</span>
+              </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <p className="text-body-sm font-semibold text-on-surface truncate">
+                  {user.nombre} {user.apellido}
+                </p>
+                <p className="text-body-sm text-on-surface-variant truncate">{user.email}</p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {user.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
+                  <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-label-caps text-on-surface-variant">Datos editables</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-label-caps text-on-surface-variant">Nombre</label>
+                <input
+                  required
+                  className="input-field"
+                  value={form.nombre ?? ''}
+                  onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-label-caps text-on-surface-variant">Apellido</label>
+                <input
+                  required
+                  className="input-field"
+                  value={form.apellido ?? ''}
+                  onChange={(e) => setForm((p) => ({ ...p, apellido: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-label-caps text-on-surface-variant">Celular</label>
+              <input
+                className="input-field"
+                value={form.celular ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, celular: e.target.value }))}
+                placeholder="+54 9 11 1234-5678"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 p-sm bg-surface-container-low rounded-lg border border-outline-variant/60">
+              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: 16 }}>lock</span>
+              <p className="text-body-sm text-on-surface-variant">
+                El email y los roles solo pueden modificarse desde configuraciones avanzadas.
+              </p>
+            </div>
+          </form>
+
+          {/* Footer */}
+          <div className="border-t border-outline-variant px-lg py-md flex justify-end gap-3 shrink-0">
+            <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
+            <button
+              type="submit"
+              form="edit-employee-form"
+              disabled={isLoading}
+              className="btn-primary disabled:opacity-50"
+            >
+              {isLoading
+                ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>progress_activity</span>
+                : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>save</span>
+              }
+              Guardar Cambios
+            </button>
           </div>
-          <div className="ml-auto flex flex-wrap gap-1">
-            {user?.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
-              <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
-            ))}
-          </div>
         </div>
-
-        <p className="text-label-caps text-on-surface-variant">Datos editables</p>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-label-caps text-on-surface-variant">Nombre</label>
-            <input
-              required
-              className="input-field"
-              value={form.nombre ?? ''}
-              onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-label-caps text-on-surface-variant">Apellido</label>
-            <input
-              required
-              className="input-field"
-              value={form.apellido ?? ''}
-              onChange={(e) => setForm((p) => ({ ...p, apellido: e.target.value }))}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-label-caps text-on-surface-variant">Celular</label>
-          <input
-            className="input-field"
-            value={form.celular ?? ''}
-            onChange={(e) => setForm((p) => ({ ...p, celular: e.target.value }))}
-            placeholder="+54 9 11 1234-5678"
-          />
-        </div>
-
-        // TO DO: actualizar el DTO para permitir cambiar roles y email
-        <div className="flex flex-col gap-1">
-          <label className="text-label-caps text-on-surface-variant">Email</label>
-     
-        </div>
-
-        // TO DO: actualizar el DTO para permitir cambiar roles y email
-        <div className="flex flex-col gap-1">
-          <label className="text-label-caps text-on-surface-variant">Roles</label>
-      
-        </div>
-
-      </form>
-    </Modal>
+      </div>
+    </div>,
+    document.body
   );
 };
 
