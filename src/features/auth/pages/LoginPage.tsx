@@ -4,13 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 const STAFF_ROLES = ["ADMIN", "STOCK", "PEDIDOS"] as const;
 
-const DEV_ACCOUNTS = [
-  { role: "ADMIN",   email: "admin@nachopizza.com",   pass: "Admin1234!" },
-  { role: "STOCK",   email: "stock@nachopizza.com",   pass: "Stock1234!" },
-  { role: "PEDIDOS", email: "pedidos@nachopizza.com", pass: "Pedidos1234!" },
-  { role: "CLIENT",  email: "juan@ejemplo.com",       pass: "Juan1234!" },
-];
-
 export const LoginPage = () => {
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
@@ -136,21 +129,6 @@ export const LoginPage = () => {
               }
             </button>
           </form>
-
-          {/* Dev quick-fill */}
-          <div className="mt-xl pt-md border-t border-outline-variant/40">
-            <p className="text-label-caps text-on-surface-variant mb-sm">Cuentas de desarrollo — clic para rellenar</p>
-            <div className="grid grid-cols-2 gap-xs">
-              {DEV_ACCOUNTS.map((acc) => (
-                <button key={acc.role} type="button"
-                  onClick={() => { setEmail(acc.email); setPassword(acc.pass); }}
-                  className="flex flex-col px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors text-left">
-                  <span className="text-label-caps text-primary font-bold">{acc.role}</span>
-                  <span className="text-[10px] text-on-surface-variant truncate">{acc.email}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Footer status */}

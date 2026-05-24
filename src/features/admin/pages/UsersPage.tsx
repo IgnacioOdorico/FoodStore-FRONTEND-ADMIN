@@ -214,10 +214,21 @@ const EditEmployeeModal: React.FC<{
   onSave: (id: number, d: UpdateUsuarioDto) => void;
   isLoading: boolean;
 }> = ({ user, onClose, onSave, isLoading }) => {
-  const [form, setForm] = useState<UpdateUsuarioDto>({ nombre: '', apellido: '', celular: '' });
+  const [form, setForm] = useState<UpdateUsuarioDto>({
+    nombre: '', apellido: '', celular: '', email: '', roles: ['STOCK'],
+  });
 
   React.useEffect(() => {
-    if (user) setForm({ nombre: user.nombre, apellido: user.apellido, celular: user.celular ?? '' });
+    if (user) {
+      const empRoles = user.roles.filter((r) => EMPLOYEE_ROLES.includes(r)) as IRole[];
+      setForm({
+        nombre: user.nombre,
+        apellido: user.apellido,
+        celular: user.celular ?? '',
+        email: user.email,
+        roles: empRoles.length > 0 ? empRoles : ['STOCK'],
+      });
+    }
   }, [user]);
 
   if (!user) return null;
@@ -229,7 +240,7 @@ const EditEmployeeModal: React.FC<{
       {/* Backdrop */}
       <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Dialog — ancho fijo explícito para evitar colapso */}
+      {/* Dialog */}
       <div className="relative w-full" style={{ maxWidth: 560 }}>
         <div className="bg-surface rounded-2xl border border-outline-variant shadow-modal flex flex-col overflow-hidden">
 
@@ -248,26 +259,18 @@ const EditEmployeeModal: React.FC<{
           {/* Body */}
           <form id="edit-employee-form" onSubmit={handleSubmit} className="p-lg flex flex-col gap-md overflow-y-auto">
 
-            {/* Perfil read-only */}
+            {/* Avatar */}
             <div className="flex items-center gap-md p-md bg-surface-container-low rounded-xl border border-outline-variant">
               <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
                 <span className="text-title-md font-bold text-on-primary-fixed">{getInitials(user)}</span>
               </div>
-              <div className="flex flex-col min-w-0 flex-1">
-                <p className="text-body-sm font-semibold text-on-surface truncate">
-                  {user.nombre} {user.apellido}
-                </p>
+              <div className="flex flex-col min-w-0">
+                <p className="text-body-sm font-semibold text-on-surface">{user.nombre} {user.apellido}</p>
                 <p className="text-body-sm text-on-surface-variant truncate">{user.email}</p>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {user.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
-                  <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
-                ))}
               </div>
             </div>
 
-            <p className="text-label-caps text-on-surface-variant">Datos editables</p>
-
+            {/* Nombre + Apellido */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-label-caps text-on-surface-variant">Nombre</label>
@@ -289,6 +292,20 @@ const EditEmployeeModal: React.FC<{
               </div>
             </div>
 
+            {/* Email */}
+            <div className="flex flex-col gap-1">
+              <label className="text-label-caps text-on-surface-variant">Email</label>
+              <input
+                required
+                type="email"
+                className="input-field"
+                value={form.email ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                placeholder="empleado@foodstore.com"
+              />
+            </div>
+
+            {/* Celular */}
             <div className="flex flex-col gap-1">
               <label className="text-label-caps text-on-surface-variant">Celular</label>
               <input
@@ -299,10 +316,20 @@ const EditEmployeeModal: React.FC<{
               />
             </div>
 
-            <div className="flex items-center gap-2 p-sm bg-surface-container-low rounded-lg border border-outline-variant/60">
-              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: 16 }}>lock</span>
-              <p className="text-body-sm text-on-surface-variant">
-                El email y los roles solo pueden modificarse desde configuraciones avanzadas.
+            {/* Rol */}
+            <div className="flex flex-col gap-1">
+              <label className="text-label-caps text-on-surface-variant">Rol</label>
+              <select
+                className="input-field"
+                value={form.roles?.[0] ?? 'STOCK'}
+                onChange={(e) => setForm((p) => ({ ...p, roles: [e.target.value as IRole] }))}
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="STOCK">Stock</option>
+                <option value="PEDIDOS">Cajero (Pedidos)</option>
+              </select>
+              <p className="text-body-sm text-on-surface-variant mt-0.5">
+                Cambiar el rol afecta los permisos de acceso de forma inmediata.
               </p>
             </div>
           </form>
