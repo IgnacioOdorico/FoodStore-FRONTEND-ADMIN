@@ -80,7 +80,7 @@ const COLUMNAS: ColumnaConfig[] = [
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60_000);
-  if (m < 1)  return 'ahora';
+  if (m < 1) return 'ahora';
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h`;
@@ -97,9 +97,9 @@ const PedidoCard: React.FC<{
   usuarios?: any[];
 }> = ({ pedido, onAvanzar, onViewDetail, isLoading, isEntregado, isCancelado, usuarios }) => {
   const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
-  const nextStates   = transiciones.filter((e) => e !== 'CANCELADO');
-  const canCancel    = transiciones.includes('CANCELADO');
-  const isEnCamino   = pedido.estado_codigo === 'EN_CAMINO';
+  const nextStates = transiciones.filter((e) => e !== 'CANCELADO');
+  const canCancel = transiciones.includes('CANCELADO');
+  const isEnCamino = pedido.estado_codigo === 'EN_CAMINO';
 
   const u = usuarios?.find(user => user.id === pedido.usuario_id);
   const customerName = u ? u.email : `Usuario #${pedido.usuario_id}`;
@@ -111,7 +111,23 @@ const PedidoCard: React.FC<{
           <span className="text-label-caps text-on-surface-variant">#{pedido.id}</span>
           <span className="text-body-sm text-on-surface-variant">{timeAgo(pedido.created_at)}</span>
         </div>
-        <h4 className="text-title-md text-on-surface-variant mb-xs">{customerName}</h4>
+        <div className="mb-xs">
+          <h4 className="text-title-md text-on-surface-variant">{customerName}</h4>
+          {pedido.direccion ? (
+            <div className="flex items-start gap-1 text-on-surface-variant/80 mt-1">
+              <span className="material-symbols-outlined text-[14px]">local_shipping</span>
+              <span className="text-[12px] leading-tight">
+                {pedido.direccion.linea1} {pedido.direccion.linea2 ? `, ${pedido.direccion.linea2}` : ''}<br />
+                <span className="opacity-80">{pedido.direccion.ciudad}</span>
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-on-surface-variant/80 mt-1 text-[12px]">
+              <span className="material-symbols-outlined text-[14px]">storefront</span>
+              Retiro en local
+            </div>
+          )}
+        </div>
         <div className="flex justify-between items-center pt-md border-t border-dashed border-outline-variant">
           <span className="text-title-md font-bold">
             ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
@@ -130,7 +146,23 @@ const PedidoCard: React.FC<{
           <span className="text-label-caps text-on-surface-variant">#{pedido.id}</span>
           <span className="text-body-sm text-on-surface-variant">{timeAgo(pedido.created_at)}</span>
         </div>
-        <h4 className="text-title-md text-on-surface-variant mb-xs">{customerName}</h4>
+        <div className="mb-xs">
+          <h4 className="text-title-md text-on-surface-variant">{customerName}</h4>
+          {pedido.direccion ? (
+            <div className="flex items-start gap-1 text-on-surface-variant/80 mt-1">
+              <span className="material-symbols-outlined text-[14px]">local_shipping</span>
+              <span className="text-[12px] leading-tight">
+                {pedido.direccion.linea1} {pedido.direccion.linea2 ? `, ${pedido.direccion.linea2}` : ''}<br />
+                <span className="opacity-80">{pedido.direccion.ciudad}</span>
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-on-surface-variant/80 mt-1 text-[12px]">
+              <span className="material-symbols-outlined text-[14px]">storefront</span>
+              Retiro en local
+            </div>
+          )}
+        </div>
         {cancelEntry?.motivo && (
           <p className="text-body-sm text-error/70 mb-md line-clamp-2 italic">"{cancelEntry.motivo}"</p>
         )}
@@ -171,8 +203,25 @@ const PedidoCard: React.FC<{
         <span className="text-body-sm text-on-surface-variant">{timeAgo(pedido.created_at)}</span>
       </div>
 
-      {/* Customer */}
-      <h4 className="text-title-md text-on-surface mb-xs">{customerName}</h4>
+      {/* Cliente */}
+      <div className="mb-sm">
+        <h4 className="text-title-md text-on-surface">{customerName}</h4>
+        {pedido.direccion ? (
+          <div className="flex items-start gap-1 text-on-surface-variant mt-1 bg-surface-container-low p-2 rounded-lg border border-outline-variant/30">
+            <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">local_shipping</span>
+            <span className="text-body-sm leading-tight">
+              <span className="font-medium text-on-surface">Envío a domicilio</span><br />
+              {pedido.direccion.linea1} {pedido.direccion.linea2 ? `, ${pedido.direccion.linea2}` : ''}<br />
+              <span className="text-xs opacity-80">{pedido.direccion.ciudad}</span>
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-on-surface-variant mt-1 bg-surface-container-low p-2 rounded-lg border border-outline-variant/30">
+            <span className="material-symbols-outlined text-[16px]">storefront</span>
+            <span className="text-body-sm font-medium">Retiro en local</span>
+          </div>
+        )}
+      </div>
 
       {/* Items */}
       <div className="space-y-1 mb-md">
@@ -592,9 +641,8 @@ export const OrdersPage: React.FC = () => {
                 <div className="space-y-2">
                   {detailTarget.historial.map((h) => (
                     <div key={h.id} className="flex items-start gap-3 p-3 bg-surface-container-low rounded-lg">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                        h.estado_hacia === 'CANCELADO' ? 'bg-error' : 'bg-primary'
-                      }`} />
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${h.estado_hacia === 'CANCELADO' ? 'bg-error' : 'bg-primary'
+                        }`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center gap-2">
                           <span className="text-body-sm font-semibold text-on-surface">

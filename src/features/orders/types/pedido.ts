@@ -71,6 +71,14 @@ export interface Pedido {
   notas?: string | null;
   detalles: DetallePedido[];
   historial?: HistorialEstado[];
+  direccion_id?: number | null;
+  direccion?: {
+    alias?: string | null;
+    linea1: string;
+    linea2?: string | null;
+    ciudad: string;
+    provincia?: string | null;
+  } | null;
   created_at: string;
   updated_at: string;
 }
