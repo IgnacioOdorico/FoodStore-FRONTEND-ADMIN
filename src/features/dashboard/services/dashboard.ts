@@ -29,7 +29,7 @@ export const dashboardService = {
   getAll: async (isAdmin: boolean): Promise<DashboardData> => {
     // El endpoint de usuarios es solo ADMIN; si no es admin, no lo llamamos
     const usuariosPromise = isAdmin
-      ? api.get<UserPublic[]>('/api/v1/auth/admin/usuarios').then((r) => r.data)
+      ? api.get<UserPublic[]>('/api/v1/admin/usuarios').then((r) => r.data)
       : Promise.resolve(null);
 
     const [categorias, productos, ingredientes, pedidos, usuarios] = await Promise.all([

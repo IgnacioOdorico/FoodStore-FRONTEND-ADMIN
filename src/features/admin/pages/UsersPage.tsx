@@ -397,13 +397,14 @@ const EditEmployeeModal: React.FC<{
 export const UsersPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'employees' | 'customers'>('employees');
+  const [selectedRol, setSelectedRol] = useState<IRole | ''>('');
   const [createOpen, setCreateOpen] = useState(false);
   const [editUser, setEditUser] = useState<Usuario | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: usersService.getAll,
+    queryKey: ['admin-users', selectedRol],
+    queryFn: () => usersService.getAll(selectedRol || undefined),
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -505,8 +506,21 @@ export const UsersPage: React.FC = () => {
         <ErrorState onRetry={() => refetch()} />
       ) : tab === 'employees' ? (
         <div className="flex flex-col gap-md">
-          <div className="flex justify-end">
-            <button onClick={() => setCreateOpen(true)} className="btn-primary">
+          <div className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/50 shadow-sm">
+            <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: 20 }}>filter_list</span>
+              <select
+                className="bg-transparent border-none outline-none text-body-sm text-on-surface font-semibold cursor-pointer w-[170px]"
+                value={selectedRol}
+                onChange={(e) => setSelectedRol(e.target.value as IRole | '')}
+              >
+                <option value="">Todos los Empleados</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="STOCK">Stock</option>
+                <option value="PEDIDOS">Cajero (Pedidos)</option>
+              </select>
+            </div>
+            <button onClick={() => setCreateOpen(true)} className="btn-primary shadow-sm hover:shadow-md transition-shadow">
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add</span>
               Añadir Empleado
             </button>

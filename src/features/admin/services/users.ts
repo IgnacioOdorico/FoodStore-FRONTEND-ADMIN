@@ -1,11 +1,11 @@
 import { api } from '../../../shared/services/api';
 import type { Usuario, CreateUsuarioDto, UpdateUsuarioDto } from '../types/usuario';
 
-const BASE = '/api/v1/auth/admin/usuarios';
+const BASE = '/api/v1/admin/usuarios';
 
 export const usersService = {
-  getAll: () =>
-    api.get<Usuario[]>(BASE).then((r) => r.data),
+  getAll: (rol?: string) =>
+    api.get<Usuario[]>(BASE, { params: { rol } }).then((r) => r.data),
 
   /** Crear empleado  — endpoint exclusivo para admin */
   create: (data: CreateUsuarioDto) => {
