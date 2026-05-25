@@ -51,8 +51,10 @@ export interface AvanzarEstadoRequest {
 
 export interface HistorialEstado {
   id: number;
-  estado: EstadoPedido;
-  observacion?: string;
+  estado_desde: string | null;
+  estado_hacia: string;
+  usuario_id: number | null;
+  motivo: string | null;
   created_at: string;
 }
 

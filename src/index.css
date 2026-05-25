@@ -45,6 +45,10 @@
   --color-inverse-primary:           #ffb4a3;
   --color-surface-tint:              #b62400;
 
+  /* Brand (alias de primary para consistencia) */
+  --color-brand:                     #b22300;
+  --color-brand-active:              #8b1900;
+
   /* Colores: Secondary (Slate)  */
   --color-secondary:                  #565e74;
   --color-on-secondary:               #ffffff;
