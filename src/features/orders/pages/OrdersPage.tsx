@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../services/orders';
 import { usersService } from '../../admin/services/users';
@@ -363,10 +363,41 @@ export const OrdersPage: React.FC = () => {
   const isAdmin = hasRole('ADMIN');
   const [search, setSearch] = useState('');
 
+  // -----------------Web Socket -------------------------------------//
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+    const wsUrl = BASE_URL.replace(/^http/, 'ws') + '/api/v1/pedidos/ws';
+
+    const connect = () => {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onmessage = () => {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      };                                                            // llega pedidos y se invalida
+
+      ws.onclose = () => {                                         // si se cierra, intenta reconectar cada 3 segundos
+        reconnectTimeout.current = setTimeout(connect, 3_000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      // evita la  reconexión al desmontar
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+      wsRef.current?.close();
+    };
+  }, [queryClient]);
+ 
+
   const { data: pedidos, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['orders'],
     queryFn: () => ordersService.getAll(),
-    refetchInterval: 15_000,
+    refetchInterval: 60_000, // fallback por si el WS se cae
   });
 
   const { data: usuarios } = useQuery({
