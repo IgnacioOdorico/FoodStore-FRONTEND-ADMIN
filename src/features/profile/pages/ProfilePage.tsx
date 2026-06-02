@@ -254,64 +254,7 @@ export const ProfilePage: React.FC = () => {
           </div>
           <span className="material-symbols-outlined text-on-tertiary-fixed/40" style={{ fontSize: 20 }}>chevron_right</span>
         </div>
-
-        {/* Preferences Card */}
-        <div className="col-span-12 bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2 p-md border-b border-outline-variant">
-            <span className="material-symbols-outlined text-primary">tune</span>
-            <h3 className="text-title-md font-semibold">Preferencias</h3>
-          </div>
-
-          <div className="divide-y divide-outline-variant">
-            {/* Notificaciones */}
-            <PreferenceRow
-              title="Notificaciones por email"
-              description="Recibí resúmenes diarios de alertas de inventario y pedidos."
-              defaultChecked
-            />
-            {/* Auto-refresh */}
-            <PreferenceRow
-              title="Actualización automática de pedidos"
-              description="Refrescá el panel de pedidos cada 30 segundos automáticamente."
-              defaultChecked
-            />
-            {/* Performance */}
-            <PreferenceRow
-              title="Datos de rendimiento del sistema"
-              description="Compartí estadísticas anónimas para mejorar las herramientas de admin."
-              defaultChecked={false}
-            />
-          </div>
-        </div>
       </div>
-    </div>
-  );
-};
-
-// Helper component
-const PreferenceRow: React.FC<{
-  title: string;
-  description: string;
-  defaultChecked: boolean;
-}> = ({ title, description, defaultChecked }) => {
-  const [checked, setChecked] = useState(defaultChecked);
-
-  return (
-    <div className="p-md flex items-center justify-between gap-md">
-      <div>
-        <p className="text-body-lg text-on-surface font-medium">{title}</p>
-        <p className="text-body-sm text-on-surface-variant">{description}</p>
-      </div>
-      {/* Toggle */}
-      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-        <input
-          type="checkbox"
-          className="sr-only peer"
-          checked={checked}
-          onChange={(e) => setChecked(e.target.checked)}
-        />
-        <div className="w-11 h-6 bg-outline-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
-      </label>
     </div>
   );
 };
