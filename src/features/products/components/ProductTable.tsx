@@ -13,6 +13,7 @@ interface ProductTableProps {
   data: Producto[];
   onEdit?:   (producto: Producto) => void;
   onDelete?: (id: number) => void;
+  onToggleDisponible?: (producto: Producto) => void;
 }
 
 
@@ -37,9 +38,9 @@ const StockBar: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
 
 const columnHelper = createColumnHelper<Producto>();
 
-export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDelete }) => {
+export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDelete, onToggleDisponible }) => {
   const navigate = useNavigate();
-  const hasActions = !!(onEdit || onDelete);
+  const hasActions = !!(onEdit || onDelete || onToggleDisponible);
 
   const columns = [
     columnHelper.accessor('nombre', {
@@ -112,6 +113,17 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
               title="Editar"
             >
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+            </button>
+          )}
+          {onToggleDisponible && (
+            <button
+              onClick={() => onToggleDisponible(info.row.original)}
+              className="btn-icon hover:bg-surface-container-high"
+              title={info.row.original.disponible ? 'Deshabilitar producto' : 'Habilitar producto'}
+            >
+              <span className={`material-symbols-outlined ${info.row.original.disponible ? 'text-error' : 'text-primary'}`} style={{ fontSize: 20 }}>
+                {info.row.original.disponible ? 'visibility_off' : 'visibility'}
+              </span>
             </button>
           )}
           {onDelete && (

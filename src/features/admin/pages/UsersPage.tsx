@@ -10,20 +10,20 @@ import type { IRole } from '../../../shared/types/auth.types';
 const EMPLOYEE_ROLES: IRole[] = ['ADMIN', 'STOCK', 'PEDIDOS'];
 
 const isEmployee = (u: Usuario) => u.roles.some((r) => EMPLOYEE_ROLES.includes(r));
-const isClient   = (u: Usuario) => u.roles.includes('CLIENT') && !isEmployee(u);
+const isClient = (u: Usuario) => u.roles.includes('CLIENT') && !isEmployee(u);
 
 const ROL_LABEL: Record<IRole, string> = {
-  ADMIN:   'Admin',
-  STOCK:   'Stock',
+  ADMIN: 'Admin',
+  STOCK: 'Stock',
   PEDIDOS: 'Cajero',
-  CLIENT:  'Cliente',
+  CLIENT: 'Cliente',
 };
 
 const ROL_BADGE: Record<IRole, string> = {
-  ADMIN:   'bg-primary-fixed text-on-primary-fixed',
-  STOCK:   'bg-[#cce5ff] text-[#001e31]',
+  ADMIN: 'bg-primary-fixed text-on-primary-fixed',
+  STOCK: 'bg-[#cce5ff] text-[#001e31]',
   PEDIDOS: 'bg-secondary-container text-on-secondary-container',
-  CLIENT:  'bg-surface-container text-on-surface-variant',
+  CLIENT: 'bg-surface-container text-on-surface-variant',
 };
 
 function getInitials(u: Usuario) {
@@ -46,23 +46,23 @@ const ConfirmModal: React.FC<{
 
   const config = isDeactivate
     ? {
-        icon: 'person_off',
-        iconBg: 'bg-error-container',
-        iconColor: 'text-error',
-        title: 'Desactivar cuenta',
-        description: 'El empleado perderá acceso al portal inmediatamente. Podrás reactivar la cuenta en cualquier momento.',
-        confirmLabel: 'Desactivar',
-        confirmClass: 'bg-error text-on-error hover:bg-error/90',
-      }
+      icon: 'person_off',
+      iconBg: 'bg-error-container',
+      iconColor: 'text-error',
+      title: 'Desactivar cuenta',
+      description: 'El empleado perderá acceso al portal inmediatamente. Podrás reactivar la cuenta en cualquier momento.',
+      confirmLabel: 'Desactivar',
+      confirmClass: 'bg-error text-on-error hover:bg-error/90',
+    }
     : {
-        icon: 'person_check',
-        iconBg: 'bg-secondary-container',
-        iconColor: 'text-secondary',
-        title: 'Reactivar cuenta',
-        description: 'El empleado recuperará el acceso al portal con sus permisos anteriores.',
-        confirmLabel: 'Reactivar',
-        confirmClass: 'bg-secondary text-on-secondary hover:bg-secondary/90',
-      };
+      icon: 'person_check',
+      iconBg: 'bg-secondary-container',
+      iconColor: 'text-secondary',
+      title: 'Reactivar cuenta',
+      description: 'El empleado recuperará el acceso al portal con sus permisos anteriores.',
+      confirmLabel: 'Reactivar',
+      confirmClass: 'bg-secondary text-on-secondary hover:bg-secondary/90',
+    };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -131,20 +131,31 @@ const ConfirmModal: React.FC<{
   );
 };
 
-// Create Modal 
+// Crear Modal 
 const CreateEmployeeModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   onSave: (d: CreateUsuarioDto) => void;
   isLoading: boolean;
-}> = ({ isOpen, onClose, onSave, isLoading }) => {
+  error: Error | null;
+  clearError: () => void;
+}> = ({ isOpen, onClose, onSave, isLoading, error, clearError }) => {
   const [form, setForm] = useState<CreateUsuarioDto>({
     nombre: '', apellido: '', email: '', password: '', celular: '', roles: ['STOCK'],
   });
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave(form); };
-  const set = (key: keyof CreateUsuarioDto, val: string | IRole[]) =>
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => { e.preventDefault(); onSave(form); };
+  const set = (key: keyof CreateUsuarioDto, val: string | IRole[]) => {
     setForm((prev) => ({ ...prev, [key]: val }));
+    if (error) clearError();
+  };
+
+  // Reseteamos el form cuando se abre o cierra
+  React.useEffect(() => {
+    if (!isOpen) {
+      setForm({ nombre: '', apellido: '', email: '', password: '', celular: '', roles: ['STOCK'] });
+    }
+  }, [isOpen]);
 
   return (
     <Modal
@@ -197,23 +208,36 @@ const CreateEmployeeModal: React.FC<{
           <label className="text-label-caps text-on-surface-variant">Rol</label>
           <select className="input-field" value={form.roles[0]}
             onChange={(e) => set('roles', [e.target.value as IRole])}>
-            <option value="ADMIN">Admin</option>
             <option value="STOCK">Stock</option>
             <option value="PEDIDOS">Cajero (Pedidos)</option>
           </select>
+          <p className="text-body-sm text-on-surface-variant mt-0.5">
+            Solo administradores del sistema pueden crear otros admins.
+          </p>
         </div>
+
+        {error && (
+          <div className="mt-2 px-4 py-3 bg-error-container rounded-lg border border-error/20 flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
+            <span className="material-symbols-outlined text-error flex-shrink-0" style={{ fontSize: 18 }}>error</span>
+            <p className="text-body-sm text-on-error-container font-semibold">
+              {error.message || 'Error al crear empleado'}
+            </p>
+          </div>
+        )}
       </form>
     </Modal>
   );
 };
 
-// Edit Modal — portal propio para evitar problemas de tamaño con el Modal compartido
+// Edit Modal Empleado 
 const EditEmployeeModal: React.FC<{
   user: Usuario | null;
   onClose: () => void;
   onSave: (id: number, d: UpdateUsuarioDto) => void;
   isLoading: boolean;
-}> = ({ user, onClose, onSave, isLoading }) => {
+  error: Error | null;
+  clearError: () => void;
+}> = ({ user, onClose, onSave, isLoading, error, clearError }) => {
   const [form, setForm] = useState<UpdateUsuarioDto>({
     nombre: '', apellido: '', celular: '', email: '', roles: ['STOCK'],
   });
@@ -233,14 +257,19 @@ const EditEmployeeModal: React.FC<{
 
   if (!user) return null;
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave(user.id, form); };
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => { e.preventDefault(); onSave(user.id, form); };
+
+  const handleChange = (key: keyof UpdateUsuarioDto, value: any) => {
+    setForm((p) => ({ ...p, [key]: value }));
+    if (error) clearError();
+  };
 
   return createPortal(
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Dialog */}
+
       <div className="relative w-full" style={{ maxWidth: 560 }}>
         <div className="bg-surface rounded-2xl border border-outline-variant shadow-modal flex flex-col overflow-hidden">
 
@@ -278,7 +307,7 @@ const EditEmployeeModal: React.FC<{
                   required
                   className="input-field"
                   value={form.nombre ?? ''}
-                  onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                  onChange={(e) => handleChange('nombre', e.target.value)}
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -287,7 +316,7 @@ const EditEmployeeModal: React.FC<{
                   required
                   className="input-field"
                   value={form.apellido ?? ''}
-                  onChange={(e) => setForm((p) => ({ ...p, apellido: e.target.value }))}
+                  onChange={(e) => handleChange('apellido', e.target.value)}
                 />
               </div>
             </div>
@@ -300,7 +329,7 @@ const EditEmployeeModal: React.FC<{
                 type="email"
                 className="input-field"
                 value={form.email ?? ''}
-                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="empleado@foodstore.com"
               />
             </div>
@@ -311,7 +340,7 @@ const EditEmployeeModal: React.FC<{
               <input
                 className="input-field"
                 value={form.celular ?? ''}
-                onChange={(e) => setForm((p) => ({ ...p, celular: e.target.value }))}
+                onChange={(e) => handleChange('celular', e.target.value)}
                 placeholder="+54 9 11 1234-5678"
               />
             </div>
@@ -322,7 +351,7 @@ const EditEmployeeModal: React.FC<{
               <select
                 className="input-field"
                 value={form.roles?.[0] ?? 'STOCK'}
-                onChange={(e) => setForm((p) => ({ ...p, roles: [e.target.value as IRole] }))}
+                onChange={(e) => handleChange('roles', [e.target.value as IRole])}
               >
                 <option value="ADMIN">Admin</option>
                 <option value="STOCK">Stock</option>
@@ -332,6 +361,15 @@ const EditEmployeeModal: React.FC<{
                 Cambiar el rol afecta los permisos de acceso de forma inmediata.
               </p>
             </div>
+
+            {error && (
+              <div className="mt-2 px-4 py-3 bg-error-container rounded-lg border border-error/20 flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
+                <span className="material-symbols-outlined text-error flex-shrink-0" style={{ fontSize: 18 }}>error</span>
+                <p className="text-body-sm text-on-error-container font-semibold">
+                  {error.message || 'Error al actualizar empleado'}
+                </p>
+              </div>
+            )}
           </form>
 
           {/* Footer */}
@@ -360,14 +398,15 @@ const EditEmployeeModal: React.FC<{
 // Page 
 export const UsersPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [tab, setTab]               = useState<'employees' | 'customers'>('employees');
-  const [createOpen, setCreateOpen]  = useState(false);
-  const [editUser, setEditUser]      = useState<Usuario | null>(null);
+  const [tab, setTab] = useState<'employees' | 'customers' | 'inactive'>('employees');
+  const [selectedRol, setSelectedRol] = useState<IRole | ''>('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editUser, setEditUser] = useState<Usuario | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: usersService.getAll,
+    queryFn: () => usersService.getAll(undefined),
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -375,14 +414,12 @@ export const UsersPage: React.FC = () => {
   const createMutation = useMutation({
     mutationFn: usersService.create,
     onSuccess: () => { invalidate(); setCreateOpen(false); },
-    onError: (e) => alert('Error al crear: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateUsuarioDto }) =>
       usersService.update(id, data),
     onSuccess: () => { invalidate(); setEditUser(null); },
-    onError: (e) => alert('Error al editar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const reactivateMutation = useMutation({
@@ -404,9 +441,15 @@ export const UsersPage: React.FC = () => {
   };
 
   const employees = (data ?? []).filter(isEmployee);
-  const clients   = (data ?? []).filter(isClient);
-  const activeEmployees   = employees.filter((u) => !u.deleted_at);
+  const clients = (data ?? []).filter(isClient);
+  const activeEmployees = employees.filter((u) => !u.deleted_at);
   const inactiveEmployees = employees.filter((u) => !!u.deleted_at);
+  
+  // Filtrar empleados activos por rol si hay filtro seleccionado
+  const filteredActiveEmployees = selectedRol
+    ? activeEmployees.filter((u) => u.roles.includes(selectedRol as IRole))
+    : activeEmployees;
+  
   const confirmLoading = deleteMutation.isPending || reactivateMutation.isPending;
 
   return (
@@ -450,17 +493,21 @@ export const UsersPage: React.FC = () => {
 
       {/* Tab navigation */}
       <div className="flex border-b border-outline-variant gap-lg">
-        {(['employees', 'customers'] as const).map((t) => (
+        {(['employees', 'inactive', 'customers'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`pb-base text-title-md font-semibold transition-all relative ${
-              tab === t
-                ? 'text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
+            className={`pb-base text-title-md font-semibold transition-all relative ${tab === t
+              ? 'text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary'
+              : 'text-on-surface-variant hover:text-on-surface'
+              }`}
           >
-            {t === 'employees' ? 'Empleados' : 'Clientes'}
+            {t === 'employees' ? 'Empleados Activos' : t === 'inactive' ? 'Desactivados' : 'Clientes'}
+            {t === 'inactive' && inactiveEmployees.length > 0 && (
+              <span className="inline-block ml-1 px-2 py-0.5 text-xs font-bold bg-error text-on-error rounded-full">
+                {inactiveEmployees.length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -472,15 +519,28 @@ export const UsersPage: React.FC = () => {
         <ErrorState onRetry={() => refetch()} />
       ) : tab === 'employees' ? (
         <div className="flex flex-col gap-md">
-          <div className="flex justify-end">
-            <button onClick={() => setCreateOpen(true)} className="btn-primary">
+          <div className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-2xl border border-outline-variant/50 shadow-sm">
+            <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-outline-variant focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: 20 }}>filter_list</span>
+              <select
+                className="bg-transparent border-none outline-none text-body-sm text-on-surface font-semibold cursor-pointer w-[170px]"
+                value={selectedRol}
+                onChange={(e) => setSelectedRol(e.target.value as IRole | '')}
+              >
+                <option value="">Todos los Empleados</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="STOCK">Stock</option>
+                <option value="PEDIDOS">Cajero (Pedidos)</option>
+              </select>
+            </div>
+            <button onClick={() => setCreateOpen(true)} className="btn-primary shadow-sm hover:shadow-md transition-shadow">
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add</span>
               Añadir Empleado
             </button>
           </div>
 
-          {employees.length === 0 ? (
-            <EmptyState message="No hay empleados registrados." />
+          {activeEmployees.length === 0 ? (
+            <EmptyState message="No hay empleados activos registrados." />
           ) : (
             <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
               <table className="w-full text-left">
@@ -494,97 +554,145 @@ export const UsersPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
-                  {employees.map((u) => {
-                    const inactive = !!u.deleted_at;
-                    return (
-                      <tr
-                        key={u.id}
-                        className={`group transition-colors ${
-                          inactive
-                            ? 'opacity-60 bg-surface-container-lowest/50'
-                            : 'hover:bg-surface-container-lowest'
-                        }`}
-                      >
-                        {/* Nombre con avatar */}
-                        <td className="table-td">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border border-outline-variant ${
-                              inactive ? 'bg-surface-container' : 'bg-primary-fixed'
-                            }`}>
-                              <span className={`text-label-caps font-bold ${
-                                inactive ? 'text-on-surface-variant' : 'text-on-primary-fixed'
-                              }`}>{getInitials(u)}</span>
-                            </div>
-                            <p className="text-body-sm font-semibold text-on-surface">
-                              {u.nombre} {u.apellido}
-                            </p>
+                  {filteredActiveEmployees.map((u) => (
+                    <tr
+                      key={u.id}
+                      className="hover:bg-surface-container-lowest transition-colors"
+                    >
+                      {/* Nombre con avatar */}
+                      <td className="table-td">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border border-outline-variant bg-primary-fixed">
+                            <span className="text-label-caps font-bold text-on-primary-fixed">{getInitials(u)}</span>
                           </div>
-                        </td>
+                          <p className="text-body-sm font-semibold text-on-surface">
+                            {u.nombre} {u.apellido}
+                          </p>
+                        </div>
+                      </td>
 
-                        {/* Rol(es) */}
-                        <td className="table-td">
-                          <div className="flex flex-wrap gap-1">
-                            {u.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
-                              <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
-                            ))}
+                      {/* Roles */}
+                      <td className="table-td">
+                        <div className="flex flex-wrap gap-1">
+                          {u.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
+                            <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
+                          ))}
+                        </div>
+                      </td>
+
+                      {/* Email */}
+                      <td className="table-td">
+                        <span className="text-body-sm text-on-surface-variant">{u.email}</span>
+                      </td>
+
+                      {/* Estado */}
+                      <td className="table-td">
+                        <span className="status-badge bg-[#cce5ff] text-[#001e31]">Activo</span>
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="table-td text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => setEditUser(u)}
+                            className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors"
+                            title="Editar empleado"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+                          </button>
+                          <button
+                            onClick={() => setConfirmAction({ type: 'deactivate', user: u })}
+                            className="p-2 rounded-full hover:bg-error-container/30 text-error transition-colors"
+                            title="Desactivar cuenta"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>person_off</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : tab === 'inactive' ? (
+        /* Tabla desactivados */
+        <div className="flex flex-col gap-md">
+          {inactiveEmployees.length === 0 ? (
+            <EmptyState message="No hay empleados desactivados." />
+          ) : (
+            <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-surface-container-low border-b border-outline-variant">
+                  <tr>
+                    <th className="table-th">Nombre</th>
+                    <th className="table-th">Rol</th>
+                    <th className="table-th">Email</th>
+                    <th className="table-th">Desactivado el</th>
+                    <th className="table-th text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant">
+                  {inactiveEmployees.map((u) => (
+                    <tr
+                      key={u.id}
+                      className="opacity-75 hover:opacity-100 transition-opacity hover:bg-surface-container-lowest"
+                    >
+                      {/* Nombre con avatar */}
+                      <td className="table-td">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border border-outline-variant bg-surface-container">
+                            <span className="text-label-caps font-bold text-on-surface-variant">{getInitials(u)}</span>
                           </div>
-                        </td>
+                          <p className="text-body-sm font-semibold text-on-surface">
+                            {u.nombre} {u.apellido}
+                          </p>
+                        </div>
+                      </td>
 
-                        {/* Email */}
-                        <td className="table-td">
-                          <span className="text-body-sm text-on-surface-variant">{u.email}</span>
-                        </td>
+                      {/* Roles */}
+                      <td className="table-td">
+                        <div className="flex flex-wrap gap-1">
+                          {u.roles.filter((r) => EMPLOYEE_ROLES.includes(r)).map((r) => (
+                            <span key={r} className={`status-badge ${ROL_BADGE[r]}`}>{ROL_LABEL[r]}</span>
+                          ))}
+                        </div>
+                      </td>
 
-                        {/* Estado */}
-                        <td className="table-td">
-                          {inactive ? (
-                            <span className="status-badge bg-error-container/60 text-on-error-container">Inactivo</span>
-                          ) : (
-                            <span className="status-badge bg-[#cce5ff] text-[#001e31]">Activo</span>
-                          )}
-                        </td>
+                      {/* Email */}
+                      <td className="table-td">
+                        <span className="text-body-sm text-on-surface-variant">{u.email}</span>
+                      </td>
 
-                        {/* Acciones */}
-                        <td className="table-td text-right">
-                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {inactive ? (
-                              <button
-                                onClick={() => setConfirmAction({ type: 'reactivate', user: u })}
-                                className="btn-icon hover:bg-secondary-container text-secondary"
-                                title="Reactivar cuenta"
-                              >
-                                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>person_check</span>
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => setEditUser(u)}
-                                  className="btn-icon hover:bg-surface-container text-on-surface-variant"
-                                  title="Editar empleado"
-                                >
-                                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
-                                </button>
-                                <button
-                                  onClick={() => setConfirmAction({ type: 'deactivate', user: u })}
-                                  className="btn-icon hover:bg-error-container/30 text-error"
-                                  title="Desactivar cuenta"
-                                >
-                                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>person_off</span>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      {/* Fecha desactivación */}
+                      <td className="table-td">
+                        <span className="text-body-sm text-on-surface-variant">
+                          {u.deleted_at ? new Date(u.deleted_at).toLocaleDateString('es-AR') : '—'}
+                        </span>
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="table-td text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => setConfirmAction({ type: 'reactivate', user: u })}
+                            className="p-2 rounded-full hover:bg-secondary-container text-secondary transition-colors"
+                            title="Reactivar cuenta"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>person_check</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       ) : (
-        /* Customers tab */
+        /* Tabla clientes */
         <div className="flex flex-col gap-md">
           {clients.length === 0 ? (
             <EmptyState message="No hay clientes registrados." />
@@ -632,19 +740,22 @@ export const UsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modals */}
       <CreateEmployeeModal
         isOpen={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => { setCreateOpen(false); createMutation.reset(); }}
         onSave={(d) => createMutation.mutate(d)}
         isLoading={createMutation.isPending}
+        error={createMutation.error}
+        clearError={createMutation.reset}
       />
 
       <EditEmployeeModal
         user={editUser}
-        onClose={() => setEditUser(null)}
+        onClose={() => { setEditUser(null); updateMutation.reset(); }}
         onSave={(id, d) => updateMutation.mutate({ id, data: d })}
         isLoading={updateMutation.isPending}
+        error={updateMutation.error}
+        clearError={updateMutation.reset}
       />
 
       <ConfirmModal

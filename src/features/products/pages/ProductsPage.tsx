@@ -49,6 +49,13 @@ export const ProductsPage: React.FC = () => {
     onError: (e) => alert('Error al eliminar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
+  const toggleDisponibleMutation = useMutation({
+    mutationFn: ({ id, disponible }: { id: number; disponible: boolean }) =>
+      productsService.patchDisponibilidad(id, disponible),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
+    onError: (e) => alert('Error al cambiar disponibilidad: ' + (e instanceof Error ? e.message : 'desconocido')),
+  });
+
   const handleOpen  = (p?: Producto) => { if (!canEdit) return; setSelected(p || null); setModalOpen(true); };
   const handleClose = () => { setModalOpen(false); setSelected(null); };
   const handleDelete = (id: number) => {
@@ -111,6 +118,7 @@ export const ProductsPage: React.FC = () => {
           data={products}
           onEdit={canEdit ? handleOpen : undefined}
           onDelete={isAdmin ? handleDelete : undefined}
+          onToggleDisponible={canEdit ? (p) => toggleDisponibleMutation.mutate({ id: p.id!, disponible: !p.disponible }) : undefined}
         />
       ) : (
         <EmptyState message="Aún no hay productos registrados." />
