@@ -36,15 +36,13 @@ const isOnLoginPage = () =>
 
 api.interceptors.response.use(
   (response) => {
-    updateActivity(); // renovar timer de inactividad en cada respuesta exitosa
+    updateActivity();
     return response;
   },
   (error) => {
-    if (
-      error.response?.status === 401 &&
-      !error.config?.url?.includes('/auth/token') &&
-      !isOnLoginPage()
-    ) {
+    const isAuthEndpoint = error.config?.url?.includes('/auth/token');
+
+    if (error.response?.status === 401 && !isAuthEndpoint && !isOnLoginPage()) {
       clearActivity();
       window.location.href = '/login';
     }
