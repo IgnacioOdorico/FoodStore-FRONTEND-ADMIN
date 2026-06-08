@@ -50,14 +50,6 @@ const COLUMNAS: ColumnaConfig[] = [
     iconClass: 'text-tertiary',
   },
   {
-    estado: 'EN_CAMINO',
-    label: 'En Camino',
-    icon: 'local_shipping',
-    borderColor: 'border-primary/40',
-    badgeClass: 'bg-primary-fixed text-on-primary-fixed',
-    iconClass: 'text-primary',
-  },
-  {
     estado: 'ENTREGADO',
     label: 'Entregado',
     icon: 'check_circle',
@@ -100,7 +92,6 @@ const PedidoCard: React.FC<{
   const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
   const nextStates = transiciones.filter((e) => e !== 'CANCELADO');
   const canCancel = transiciones.includes('CANCELADO');
-  const isEnCamino = pedido.estado_codigo === 'EN_CAMINO';
 
   const u = usuarios?.find(user => user.id === pedido.usuario_id);
   const customerName = u ? u.email : `Usuario #${pedido.usuario_id}`;
@@ -380,7 +371,6 @@ export const OrdersPage: React.FC = () => {
         msg.event === 'PEDIDO_NUEVO' ||
         msg.event === 'PEDIDO_CONFIRMADO' ||
         msg.event === 'PEDIDO_EN_PREPARACION' ||
-        msg.event === 'PEDIDO_EN_CAMINO' ||
         msg.event === 'PEDIDO_ENTREGADO' ||
         msg.event === 'PEDIDO_CANCELADO'
       ) {
