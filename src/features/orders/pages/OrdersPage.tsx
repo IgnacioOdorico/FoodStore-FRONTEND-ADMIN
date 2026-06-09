@@ -50,14 +50,6 @@ const COLUMNAS: ColumnaConfig[] = [
     iconClass: 'text-tertiary',
   },
   {
-    estado: 'EN_CAMINO',
-    label: 'En Camino',
-    icon: 'local_shipping',
-    borderColor: 'border-primary/40',
-    badgeClass: 'bg-primary-fixed text-on-primary-fixed',
-    iconClass: 'text-primary',
-  },
-  {
     estado: 'ENTREGADO',
     label: 'Entregado',
     icon: 'check_circle',
@@ -100,7 +92,6 @@ const PedidoCard: React.FC<{
   const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
   const nextStates = transiciones.filter((e) => e !== 'CANCELADO');
   const canCancel = transiciones.includes('CANCELADO');
-  const isEnCamino = pedido.estado_codigo === 'EN_CAMINO';
 
   const u = usuarios?.find(user => user.id === pedido.usuario_id);
   const customerName = u ? u.email : `Usuario #${pedido.usuario_id}`;
@@ -187,18 +178,11 @@ const PedidoCard: React.FC<{
 
   return (
     <div
-      className={`bg-white p-md rounded-xl shadow-sm border border-outline-variant hover:shadow-md transition-shadow group
-        ${isEnCamino ? 'bg-primary/5 border-2 border-primary relative overflow-hidden' : ''}`}
+      className="bg-white p-md rounded-xl shadow-sm border border-outline-variant hover:shadow-md transition-shadow group"
     >
-      {isEnCamino && (
-        <div className="absolute -right-2 -top-2 opacity-10 pointer-events-none">
-          <span className="material-symbols-outlined" style={{ fontSize: 80 }}>done_all</span>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex justify-between items-start mb-sm">
-        <span className={`text-label-caps font-black ${isEnCamino ? 'text-primary' : 'text-primary'}`}>
+        <span className="text-label-caps font-black text-primary">
           #{pedido.id}
         </span>
         <span className="text-body-sm text-on-surface-variant">{timeAgo(pedido.created_at)}</span>
@@ -240,68 +224,39 @@ const PedidoCard: React.FC<{
       </div>
 
       {/* Footer */}
-      {isEnCamino ? (
-        <div className="flex flex-col gap-sm pt-md border-t border-dashed border-primary/30">
-          <div className="flex justify-between items-center">
-            <span className="text-title-md font-bold text-primary">
-              ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+      <div className="flex justify-between items-center pt-md border-t border-dashed border-outline-variant">
+        <span className="text-title-md font-bold text-primary">
+          ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+        </span>
+        <div className="flex gap-xs">
+          {canCancel && (
+            <button
+              disabled={isLoading}
+              onClick={() => onAvanzar(pedido.id, 'CANCELADO')}
+              className="p-2 hover:bg-error-container/30 rounded-full text-error transition-colors disabled:opacity-50"
+              title="Cancelar pedido"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+            </button>
+          )}
           {nextStates.map((estado) => (
             <button
               key={estado}
               disabled={isLoading}
               onClick={() => onAvanzar(pedido.id, estado)}
-              className="w-full bg-primary text-on-primary py-2 rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 hover:bg-surface-container rounded-full text-secondary transition-colors disabled:opacity-50"
+              title={`Pasar a ${ESTADO_LABELS[estado]}`}
             >
-              MARCAR ENTREGADO
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}
+              >
+                play_arrow
+              </span>
             </button>
           ))}
-          {canCancel && (
-            <button
-              disabled={isLoading}
-              onClick={() => onAvanzar(pedido.id, 'CANCELADO')}
-              className="w-full text-error border border-error/30 py-1 rounded-lg text-label-caps hover:bg-error-container/30 transition-colors disabled:opacity-50 text-xs"
-            >
-              Cancelar
-            </button>
-          )}
         </div>
-      ) : (
-        <div className="flex justify-between items-center pt-md border-t border-dashed border-outline-variant">
-          <span className="text-title-md font-bold text-primary">
-            ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-          </span>
-          <div className="flex gap-xs">
-            {canCancel && (
-              <button
-                disabled={isLoading}
-                onClick={() => onAvanzar(pedido.id, 'CANCELADO')}
-                className="p-2 hover:bg-error-container/30 rounded-full text-error transition-colors disabled:opacity-50"
-                title="Cancelar pedido"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
-              </button>
-            )}
-            {nextStates.map((estado) => (
-              <button
-                key={estado}
-                disabled={isLoading}
-                onClick={() => onAvanzar(pedido.id, estado)}
-                className="p-2 hover:bg-surface-container rounded-full text-secondary transition-colors disabled:opacity-50"
-                title={`Pasar a ${ESTADO_LABELS[estado]}`}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}
-                >
-                  play_arrow
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -380,7 +335,6 @@ export const OrdersPage: React.FC = () => {
         msg.event === 'PEDIDO_NUEVO' ||
         msg.event === 'PEDIDO_CONFIRMADO' ||
         msg.event === 'PEDIDO_EN_PREPARACION' ||
-        msg.event === 'PEDIDO_EN_CAMINO' ||
         msg.event === 'PEDIDO_ENTREGADO' ||
         msg.event === 'PEDIDO_CANCELADO'
       ) {
