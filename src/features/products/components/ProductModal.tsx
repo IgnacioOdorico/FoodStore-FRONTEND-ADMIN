@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import type { Producto } from '../types/producto';
 import { Button } from '../../../shared/ui/Button';
@@ -6,6 +6,7 @@ import { Input } from '../../../shared/ui/Input';
 import { Modal } from '../../../shared/ui/Modal';
 import { X } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import UploadModal from '../../../shared/components/cloudinary/UploadModal';
 
 import type { Categoria } from '../../categories/types/categoria';
 import type { Ingrediente } from '../../ingredients/types/ingrediente';
@@ -31,6 +32,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 }) => {
   const { hasRole } = useAuthStore();
   const isStockOnly = hasRole('STOCK') && !hasRole('ADMIN');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -38,7 +40,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       descripcion: productoSelected?.descripcion ?? '',
       precio_base: productoSelected?.precio_base ?? 0,
       stock_cantidad: productoSelected?.stock_cantidad ?? 0,
-      imagen_url: productoSelected?.imagenes_url?.[0] ?? '',
+      imagenes_url: productoSelected?.imagenes_url ?? [],
       disponible: productoSelected?.disponible ?? true,
       categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
       ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
@@ -53,7 +55,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         descripcion: value.descripcion,
         precio_base: Number(value.precio_base),
         stock_cantidad: Number(value.stock_cantidad),
-        imagenes_url: value.imagen_url ? [value.imagen_url] : [],
+        imagenes_url: value.imagenes_url,
         disponible: value.disponible,
         categoria_ids: value.categoria_ids,
         ingredientes_receta: value.ingredientes_receta,
@@ -68,7 +70,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         descripcion: productoSelected?.descripcion ?? '',
         precio_base: productoSelected?.precio_base ?? 0,
         stock_cantidad: productoSelected?.stock_cantidad ?? 0,
-        imagen_url: productoSelected?.imagenes_url?.[0] ?? '',
+        imagenes_url: productoSelected?.imagenes_url ?? [],
         disponible: productoSelected?.disponible ?? true,
         categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
         ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
@@ -134,21 +136,59 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               />
 
               <form.Field
-                name="imagen_url"
+                name="imagenes_url"
                 children={(field) => (
                   <div className="flex flex-col gap-1.5 w-full">
-                    <label className="text-label-caps text-on-surface-variant">URL de Imagen (Opcional)</label>
-                     {field.state.value && (
-                       <div className="relative w-full h-40 rounded-lg border border-outline-variant overflow-hidden bg-surface-variant/30">
-                         <img src={field.state.value} alt="Preview" className="w-full h-full object-cover" />
-                         {!isStockOnly && (
-                           <button type="button" onClick={() => field.handleChange('')} className="absolute top-2 right-2 p-1.5 bg-error rounded-lg hover:bg-error/80 transition-colors shadow-sm">
-                             <X className="w-4 h-4 text-white" />
-                           </button>
-                         )}
+                    <label className="text-label-caps text-on-surface-variant">Imágenes (Opcional)</label>
+                     {field.state.value && field.state.value.length > 0 && (
+                       <div className="grid grid-cols-2 gap-2 mb-2">
+                         {field.state.value.map((url: string, index: number) => (
+                           <div key={index} className="relative w-full h-32 rounded-lg border border-outline-variant overflow-hidden bg-surface-variant/30">
+                             <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                             {!isStockOnly && (
+                               <button type="button" onClick={() => {
+                                 const newUrls = [...field.state.value];
+                                 newUrls.splice(index, 1);
+                                 field.handleChange(newUrls);
+                               }} className="absolute top-2 right-2 p-1.5 bg-error rounded-lg hover:bg-error/80 transition-colors shadow-sm">
+                                 <X className="w-4 h-4 text-white" />
+                               </button>
+                             )}
+                           </div>
+                         ))}
                        </div>
                      )}
-                     <Input label={field.state.value ? 'Cambiar URL' : 'Pegar URL'} type="url" disabled={isStockOnly} placeholder="https://ejemplo.com/imagen.jpg" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} onBlur={field.handleBlur} />
+                     {!isStockOnly && (
+                       <div className="flex gap-2 items-center">
+                         <Button type="button" variant="secondary" onClick={() => setIsUploadModalOpen(true)}>
+                           Subir Imágenes
+                         </Button>
+                         <Input 
+                           placeholder="O pegar URL y presionar Enter" 
+                           onKeyDown={(e) => {
+                             if (e.key === 'Enter') {
+                               e.preventDefault();
+                               const input = e.target as HTMLInputElement;
+                               if (input.value) {
+                                 field.handleChange([...field.state.value, input.value]);
+                                 input.value = '';
+                               }
+                             }
+                           }} 
+                         />
+                       </div>
+                     )}
+                     {isUploadModalOpen && (
+                       <UploadModal
+                         onClose={() => setIsUploadModalOpen(false)}
+                         onUploadComplete={(responses) => {
+                           if (responses && responses.length > 0) {
+                             const newUrls = responses.map(r => r.secure_url);
+                             field.handleChange([...field.state.value, ...newUrls]);
+                           }
+                         }}
+                       />
+                     )}
                   </div>
                 )}
               />
