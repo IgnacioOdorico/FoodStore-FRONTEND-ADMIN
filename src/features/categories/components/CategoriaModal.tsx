@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import type { Categoria } from '../types/categoria';
 import { Button } from '../../../shared/ui/Button';
 import { Input } from '../../../shared/ui/Input';
 import { Modal } from '../../../shared/ui/Modal';
 import { X } from 'lucide-react';
+import UploadModal from '../../../shared/components/cloudinary/UploadModal';
 
 interface CategoriaModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
   categorias,
   isLoading 
 }) => {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
   const form = useForm({
     defaultValues: {
       nombre: categoriaSelected?.nombre ?? '',
@@ -114,16 +117,33 @@ export const CategoriaModal: React.FC<CategoriaModalProps> = ({
                   </button>
                 </div>
               )}
-              <Input
-                label={field.state.value ? 'Cambiar URL de Imagen' : 'Pegar URL de Imagen'}
-                type="url"
-                placeholder="https://ejemplo.com/imagen.jpg"
-                value={field.state.value}
-                onChange={(e) => {
-                  field.handleChange(e.target.value);
-                }}
-                onBlur={field.handleBlur}
-              />
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="secondary" onClick={() => setIsUploadModalOpen(true)}>
+                  Subir Imagen
+                </Button>
+                <div className="flex-1">
+                  <Input
+                    label={field.state.value ? 'O Cambiar URL de Imagen' : 'O Pegar URL de Imagen'}
+                    type="url"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                  />
+                </div>
+              </div>
+              {isUploadModalOpen && (
+                <UploadModal
+                  onClose={() => setIsUploadModalOpen(false)}
+                  onUploadComplete={(responses) => {
+                    if (responses && responses.length > 0) {
+                      field.handleChange(responses[0].secure_url);
+                    }
+                  }}
+                />
+              )}
             </div>
           )}
         />
