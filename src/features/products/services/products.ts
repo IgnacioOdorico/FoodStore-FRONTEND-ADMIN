@@ -2,7 +2,7 @@ import { api } from '../../../shared/services/api';
 import type { Producto } from '../types/producto';
 
 export const productsService = {
-  getAll: () => api.get<Producto[]>('/api/v1/productos/').then((r) => r.data),
+  getAll: () => api.get<{ items: Producto[] }>('/api/v1/productos/').then((r) => r.data.items || []),
   getById: (id: number) => api.get<Producto>(`/api/v1/productos/${id}`).then((r) => r.data),
   create: (data: Partial<Producto>) => api.post<Producto>('/api/v1/productos/', data).then((r) => r.data),
   update: (id: number, data: Partial<Producto>) => api.patch<Producto>(`/api/v1/productos/${id}`, data).then((r) => r.data),

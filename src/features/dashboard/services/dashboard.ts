@@ -32,13 +32,15 @@ export const dashboardService = {
       ? api.get<UserPublic[]>('/api/v1/admin/usuarios').then((r) => r.data)
       : Promise.resolve(null);
 
-    const [categorias, productos, ingredientes, pedidos, usuarios] = await Promise.all([
+    const [categorias, productos, ingredientes, pedidosResponse, usuarios] = await Promise.all([
       api.get<Categoria[]>('/api/v1/categorias/').then((r) => r.data),
       api.get<Producto[]>('/api/v1/productos/').then((r) => r.data),
       api.get<Ingrediente[]>('/api/v1/ingredientes/').then((r) => r.data),
-      api.get<Pedido[]>('/api/v1/pedidos/admin/listado').then((r) => r.data),
+      api.get<{ items: Pedido[] }>('/api/v1/pedidos/admin/listado').then((r) => r.data),
       usuariosPromise,
     ]);
+
+    const pedidos = pedidosResponse.items || [];
 
     // Contar pedidos por estado
     const pedidosPorEstado: Record<string, number> = {};

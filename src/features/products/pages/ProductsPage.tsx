@@ -63,10 +63,11 @@ export const ProductsPage: React.FC = () => {
     if (window.confirm('¿Eliminar este producto?')) deleteMutation.mutate(id);
   };
 
-  const total      = products?.length ?? 0;
-  const lowStock   = products?.filter((p) => (p.stock_cantidad ?? 0) > 0 && (p.stock_cantidad ?? 0) < 5).length ?? 0;
-  const outOfStock = products?.filter((p) => (p.stock_cantidad ?? 0) === 0).length ?? 0;
-  const available  = products?.filter((p) => p.disponible).length ?? 0;
+  const safeProducts = products ?? [];
+  const total      = safeProducts.length;
+  const lowStock   = safeProducts.filter((p) => (p.stock_cantidad ?? 0) > 0 && (p.stock_cantidad ?? 0) < 5).length;
+  const outOfStock = safeProducts.filter((p) => (p.stock_cantidad ?? 0) === 0).length;
+  const available  = safeProducts.filter((p) => p.disponible).length;
 
   return (
     <div className="flex flex-col gap-lg animate-in fade-in duration-500">

@@ -43,8 +43,9 @@ export const IngredientsPage: React.FC = () => {
     if (window.confirm('¿Eliminar este ingrediente?')) deleteMutation.mutate(id);
   };
 
-  const total     = data?.length ?? 0;
-  const alergenos = data?.filter((i) => i.es_alergeno).length ?? 0;
+  const safeData  = data ?? [];
+  const total     = safeData.length;
+  const alergenos = safeData.filter((i) => i.es_alergeno).length;
   const seguros   = total - alergenos;
 
   const filtered = search.trim()
