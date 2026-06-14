@@ -42,6 +42,12 @@ export const ProductsPage: React.FC = () => {
     enabled: isAdmin,
   });
 
+  const { data: unidades } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: productsService.getUnidadesMedida,
+    enabled: isAdmin,
+  });
+
   const saveMutation = useMutation({
     mutationFn: (data: Partial<Producto>) =>
       selected?.id ? productsService.update(selected.id, data) : productsService.create(data),
@@ -139,6 +145,7 @@ export const ProductsPage: React.FC = () => {
           productoSelected={selected}
           categorias={categories || []}
           ingredientes={ingredients || []}
+          unidades={unidades || []}
           onSave={(val) => saveMutation.mutate(val)}
           isLoading={saveMutation.isPending}
         />

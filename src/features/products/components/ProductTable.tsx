@@ -64,6 +64,21 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, page, totalPag
             <p className="text-body-sm text-on-surface-variant opacity-60 line-clamp-1">
               {info.row.original.descripcion}
             </p>
+            {/* Badges de dieta */}
+            {(info.row.original.es_apto_celiaco || info.row.original.es_apto_vegano) && (
+              <div className="flex gap-1.5 mt-1.5">
+                {info.row.original.es_apto_celiaco && (
+                  <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                    Sin TACC
+                  </span>
+                )}
+                {info.row.original.es_apto_vegano && (
+                  <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                    Vegano
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ),

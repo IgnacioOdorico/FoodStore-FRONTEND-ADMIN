@@ -1,5 +1,5 @@
 import { api } from '../../../shared/services/api';
-import type { Producto } from '../types/producto';
+import type { Producto, UnidadMedida } from '../types/producto';
 
 interface PaginatedResponse {
   items: Producto[];
@@ -7,6 +7,7 @@ interface PaginatedResponse {
 }
 
 export const productsService = {
+  getUnidadesMedida: () => api.get<UnidadMedida[]>('/api/v1/catalogos/unidades-medida').then(r => r.data),
   getAll: (params?: { page?: number; size?: number }): Promise<PaginatedResponse> =>
     api.get<PaginatedResponse>('/api/v1/productos/', { params }).then((r) => r.data),
   getById: (id: number) => api.get<Producto>(`/api/v1/productos/${id}`).then((r) => r.data),
