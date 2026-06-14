@@ -18,11 +18,17 @@ export const ProductsPage: React.FC = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected]   = useState<Producto | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
-  const { data: products, isLoading, isError, refetch } = useQuery({
-    queryKey: ['products'],
-    queryFn: productsService.getAll,
+  const { data: paginated, isLoading, isError, refetch } = useQuery({
+    queryKey: ['products', page],
+    queryFn: () => productsService.getAll({ page, size: PAGE_SIZE }),
   });
+
+  const products = paginated?.items ?? [];
+  const total = paginated?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -63,11 +69,9 @@ export const ProductsPage: React.FC = () => {
     if (window.confirm('¿Eliminar este producto?')) deleteMutation.mutate(id);
   };
 
-  const safeProducts = products ?? [];
-  const total      = safeProducts.length;
-  const lowStock   = safeProducts.filter((p) => (p.stock_cantidad ?? 0) > 0 && (p.stock_cantidad ?? 0) < 5).length;
-  const outOfStock = safeProducts.filter((p) => (p.stock_cantidad ?? 0) === 0).length;
-  const available  = safeProducts.filter((p) => p.disponible).length;
+  const lowStock   = products.filter((p) => (p.stock_cantidad ?? 0) > 0 && (p.stock_cantidad ?? 0) < 5).length;
+  const outOfStock = products.filter((p) => (p.stock_cantidad ?? 0) === 0).length;
+  const available  = products.filter((p) => p.disponible).length;
 
   return (
     <div className="flex flex-col gap-lg animate-in fade-in duration-500">
@@ -114,9 +118,12 @@ export const ProductsPage: React.FC = () => {
         <LoadingState />
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
-      ) : products && products.length > 0 ? (
+      ) : products.length > 0 ? (
         <ProductTable
           data={products}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
           onEdit={canEdit ? handleOpen : undefined}
           onDelete={isAdmin ? handleDelete : undefined}
           onToggleDisponible={canEdit ? (p) => toggleDisponibleMutation.mutate({ id: p.id!, disponible: !p.disponible }) : undefined}

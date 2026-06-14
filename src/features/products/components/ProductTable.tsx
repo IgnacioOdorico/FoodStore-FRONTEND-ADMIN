@@ -11,6 +11,9 @@ import { useNavigate } from 'react-router-dom';
 
 interface ProductTableProps {
   data: Producto[];
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
   onEdit?:   (producto: Producto) => void;
   onDelete?: (id: number) => void;
   onToggleDisponible?: (producto: Producto) => void;
@@ -38,7 +41,7 @@ const StockBar: React.FC<{ qty?: number }> = ({ qty = 0 }) => {
 
 const columnHelper = createColumnHelper<Producto>();
 
-export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDelete, onToggleDisponible }) => {
+export const ProductTable: React.FC<ProductTableProps> = ({ data, page, totalPages, onPageChange, onEdit, onDelete, onToggleDisponible }) => {
   const navigate = useNavigate();
   const hasActions = !!(onEdit || onDelete || onToggleDisponible);
 
@@ -169,12 +172,43 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, onEdit, onDele
           ))}
         </tbody>
       </table>
-      {/* Pagination placeholder */}
-      <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant flex items-center justify-between">
-        <p className="text-body-sm text-on-surface-variant">
-          Mostrando <span className="font-bold">{data.length}</span> productos
-        </p>
-      </div>
+      {/* Paginación */}
+      {page && totalPages && onPageChange && totalPages > 1 && (
+        <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant flex items-center justify-between">
+          <p className="text-body-sm text-on-surface-variant">
+            Página <span className="font-bold">{page}</span> de {totalPages}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page === 1}
+              className="btn-icon hover:bg-surface-container-high text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => onPageChange(p)}
+                className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${
+                  p === page
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container-high'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page === totalPages}
+              className="btn-icon hover:bg-surface-container-high text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
