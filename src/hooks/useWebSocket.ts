@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWsStore } from '../store/wsStore';
+
 export interface WsMessage {
   event: string;
   data: unknown;
@@ -16,6 +18,7 @@ export function useWebSocket({
   enabled = true,
 }: UseWebSocketOptions = {}) {
   const onMessageRef = useRef(onMessage);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     onMessageRef.current = onMessage;
@@ -25,11 +28,8 @@ export function useWebSocket({
     if (!enabled) return;
 
     let cancelled = false;
-
     let retryCount = 0;
-
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
-
     let currentWs: WebSocket | null = null;
 
     const closeCleanly = (ws: WebSocket) => {
@@ -44,7 +44,7 @@ export function useWebSocket({
       if (cancelled) return;
 
       const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-      const wsUrl = BASE_URL.replace(/^http/, 'ws') + '/api/v1/pedidos/ws';
+      const wsUrl = BASE_URL.replace(/^http/, 'ws') + '/api/v1/pedidos/ws/admin';
 
       const ws = new WebSocket(wsUrl);
       currentWs = ws;
@@ -54,9 +54,15 @@ export function useWebSocket({
           ws.close(1000);
           return;
         }
+        const isReconnection = retryCount > 0;
         retryCount = 0;
         useWsStore.getState().connect();
         onMessageRef.current?.({ event: 'WS_CONNECTED', data: null });
+
+        if (isReconnection) {
+          queryClient.invalidateQueries({ queryKey: ['orders'] });
+          onMessageRef.current?.({ event: 'WS_RECONNECTED', data: null });
+        }
       };
 
       ws.onmessage = (event) => {
@@ -92,5 +98,6 @@ export function useWebSocket({
       if (retryTimer !== null) clearTimeout(retryTimer);
       if (currentWs) closeCleanly(currentWs);
     };
-  }, [enabled]);
+  }, [enabled, queryClient]);
 }
+

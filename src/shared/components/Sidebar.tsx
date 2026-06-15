@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useWsStore } from '../../store/wsStore';
 
 
 const NavItem: React.FC<{ to: string; icon: string; label: string }> = ({ to, icon, label }) => (
@@ -17,6 +18,7 @@ const NavItem: React.FC<{ to: string; icon: string; label: string }> = ({ to, ic
 
 export const Sidebar: React.FC = () => {
   const { user, logout, hasRole } = useAuthStore();
+  const isConnected = useWsStore((s) => s.isConnected);
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -44,11 +46,11 @@ export const Sidebar: React.FC = () => {
 
       {/* Navegación */}
       <nav className="flex-1 space-y-1">
-        
+
         {/* Solo ADMIN: usuarios */}
         {hasRole('ADMIN') && (
           <>
-            <NavItem to="/dashboard"   icon="dashboard"   label="Panel de Control" />
+            <NavItem to="/dashboard" icon="dashboard" label="Panel de Control" />
             <NavItem to="/admin/users" icon="manage_accounts" label="Usuarios" />
           </>
         )}
@@ -56,9 +58,9 @@ export const Sidebar: React.FC = () => {
         {/* ADMIN + STOCK + PEDIDOS: catálogo */}
         {hasRole('ADMIN', 'STOCK', 'PEDIDOS') && (
           <>
-            <NavItem to="/products"    icon="inventory_2" label="Productos" />
-            <NavItem to="/categories"  icon="category"    label="Categorías" />
-            <NavItem to="/ingredients" icon="egg_alt"     label="Ingredientes" />
+            <NavItem to="/products" icon="inventory_2" label="Productos" />
+            <NavItem to="/categories" icon="category" label="Categorías" />
+            <NavItem to="/ingredients" icon="egg_alt" label="Ingredientes" />
           </>
         )}
 
@@ -79,6 +81,18 @@ export const Sidebar: React.FC = () => {
           <span className="material-symbols-outlined">logout</span>
           <span>Cerrar sesión</span>
         </button>
+      </div>
+
+      {/* Badge estado de conexión WebSocket */}
+      <div className="px-md py-sm">
+        <div className={`flex items-center gap-2 px-sm py-xs rounded-lg text-[11px] font-semibold ${isConnected
+            ? 'bg-green-500/10 text-green-600'
+            : 'bg-red-500/10 text-red-500'
+          }`}>
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+            }`} />
+          {isConnected ? 'En tiempo real' : 'Sin conexión en tiempo real'}
+        </div>
       </div>
 
       {/* User info */}

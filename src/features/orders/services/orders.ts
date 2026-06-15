@@ -11,6 +11,6 @@ export const ordersService = {
   /** Avanzar el estado de un pedido */
   avanzarEstado: (id: number, data: AvanzarEstadoRequest) =>
     api
-      .patch<Pedido>(`/api/v1/pedidos/${id}/avanzar`, data)
+      .patch<Pedido>(`/api/v1/pedidos/${id}/estado`, data)
       .then((r) => r.data),
 };

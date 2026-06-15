@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../services/orders';
 import { usersService } from '../../admin/services/users';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { useWebSocket } from '../../../hooks/useWebSocket';
+
 import {
   type EstadoPedido,
   type Pedido,
@@ -319,30 +319,8 @@ export const OrdersPage: React.FC = () => {
   const isAdmin = hasRole('ADMIN');
   const [search, setSearch] = useState('');
 
-  // ─── WebSocket — actualizaciones en tiempo real ───────────────────────────
-  // El staff (ADMIN/PEDIDOS) se une automáticamente a su room de rol al
-  // conectarse. No necesita subscribe-order: recibe TODOS los eventos de
-  // pedidos por broadcast_to_roles desde el backend.
-  //
-  // WS_CONNECTED se emite al (re)conectar para forzar un refetch de datos
-  // frescos en caso de que se hayan perdido eventos durante la desconexión.
-  useWebSocket({
-    onMessage: (msg) => {
-      // Cualquier evento del backend (o WS_CONNECTED al reconectar)
-      // invalida el caché de pedidos para mantener el kanban actualizado.
-      if (
-        msg.event === 'WS_CONNECTED' ||
-        msg.event === 'PEDIDO_NUEVO' ||
-        msg.event === 'PEDIDO_CONFIRMADO' ||
-        msg.event === 'PEDIDO_EN_PREPARACION' ||
-        msg.event === 'PEDIDO_ENTREGADO' ||
-        msg.event === 'PEDIDO_CANCELADO'
-      ) {
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
-      }
-    },
-  });
- 
+
+
 
   const { data: pedidos, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['orders'],
@@ -367,12 +345,27 @@ export const OrdersPage: React.FC = () => {
   const avanzarMutation = useMutation({
     mutationFn: ({ id, estado, motivo }: { id: number; estado: EstadoPedido; motivo?: string }) =>
       ordersService.avanzarEstado(id, { estado_hacia: estado, motivo }),
+    onMutate: async ({ id, estado }) => {
+      await queryClient.cancelQueries({ queryKey: ['orders'] });
+      const previous = queryClient.getQueryData<Pedido[]>(['orders']);
+      queryClient.setQueryData<Pedido[]>(['orders'], (old) =>
+        old?.map((p) => (p.id === id ? { ...p, estado_codigo: estado } : p)) ?? []
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['orders'], context.previous);
+      }
+      alert('Error al cambiar estado: ' + (_err instanceof Error ? _err.message : 'Error desconocido'));
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
       setCancelTarget(null);
       setCancelMotivo('');
     },
-    onError: (e) => alert('Error al cambiar estado: ' + (e instanceof Error ? e.message : 'Error desconocido')),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 
   const handleAvanzar = (id: number, nuevoEstado: EstadoPedido) => {
