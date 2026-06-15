@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const RevenueChart: React.FC<Props> = ({ data }) => {
-  const total = data.reduce((acc, d) => acc + d.ingresos, 0);
+  const total = data.reduce((acc, d) => acc + Number(d.ingresos), 0);
 
   if (data.length === 0) {
     return (
@@ -50,7 +50,7 @@ export const RevenueChart: React.FC<Props> = ({ data }) => {
       </div>
       <div className="h-[180px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 10 }}>
             <defs>
               <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#006192" stopOpacity={0.15} />
@@ -65,10 +65,11 @@ export const RevenueChart: React.FC<Props> = ({ data }) => {
               axisLine={{ stroke: '#e5beb5', opacity: 0.5 }}
             />
             <YAxis
+              width={65}
               tick={{ fontSize: 11, fill: '#5c403a' }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `$${v}`}
+              tickFormatter={(v) => `$${Math.round(v).toLocaleString('es-AR')}`}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area

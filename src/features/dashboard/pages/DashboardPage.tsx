@@ -54,8 +54,8 @@ const SectionCard: React.FC<{
   </section>
 );
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+const formatCurrency = (value: number | string) =>
+  `$${Number(value).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();

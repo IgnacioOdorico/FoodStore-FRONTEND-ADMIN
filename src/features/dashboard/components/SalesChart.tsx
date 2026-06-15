@@ -38,7 +38,7 @@ export const SalesChart: React.FC<Props> = ({ data }) => {
   return (
     <div className="h-[220px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5beb5" opacity={0.3} />
           <XAxis
             dataKey="fechaLabel"
@@ -47,6 +47,7 @@ export const SalesChart: React.FC<Props> = ({ data }) => {
             axisLine={{ stroke: '#e5beb5', opacity: 0.5 }}
           />
           <YAxis
+            width={40}
             allowDecimals={false}
             tick={{ fontSize: 11, fill: '#5c403a' }}
             tickLine={false}
