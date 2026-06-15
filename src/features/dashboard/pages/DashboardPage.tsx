@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { dashboardService, VentasPeriodoItem } from '../services/dashboard';
+import { dashboardService } from '../services/dashboard';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
 import { ESTADO_LABELS, ESTADO_COLORS } from '../../orders/types/pedido';
 import { SalesChart } from '../components/SalesChart';
@@ -83,20 +83,27 @@ export const DashboardPage: React.FC = () => {
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => results.forEach(q => q.refetch())} />;
   
-  if (results.some((q) => !q.data)) return null;
+  if (results.some((q) => !q.data)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <LoadingState />
+        <p className="text-on-surface-variant text-sm">Esperando que carguen todos los datos...</p>
+      </div>
+    );
+  }
 
   const [resumenQuery, ventasQuery, topQuery, estadosQuery] = results;
   const resumen = resumenQuery.data!;
-  const ventas = ventasQuery.data!.items;
-  const topProductos = topQuery.data!.items;
-  const pedidosEstado = estadosQuery.data!.items;
+  const ventas = ventasQuery.data?.items || [];
+  const topProductos = topQuery.data?.items || [];
+  const pedidosEstado = estadosQuery.data?.items || {};
 
   const statusKeys = Object.keys(pedidosEstado).sort();
-  const totalPedidosEstado = Object.values(pedidosEstado).reduce((a, b) => a + b, 0);
+  const totalPedidosEstado = Object.values(pedidosEstado).reduce((a: any, b: any) => a + b, 0);
 
   const mappedVentas = ventas.map(v => ({
     ...v,
-    fechaLabel: v.fecha.split('-').reverse().slice(0, 2).join('/')
+    fechaLabel: v.fecha ? v.fecha.split('-').reverse().slice(0, 2).join('/') : '?'
   }));
 
   return (
