@@ -124,7 +124,18 @@ const PedidoCard: React.FC<{
           <span className="text-title-md font-bold">
             ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </span>
-          <span className="material-symbols-outlined text-secondary">check_circle</span>
+          <div className="flex gap-2 items-center">
+            {onViewDetail && (
+              <button
+                onClick={() => onViewDetail(pedido)}
+                className="flex items-center gap-1 text-label-caps text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>info</span>
+                Ver detalle
+              </button>
+            )}
+            <span className="material-symbols-outlined text-secondary">check_circle</span>
+          </div>
         </div>
       </div>
     );
@@ -229,6 +240,15 @@ const PedidoCard: React.FC<{
           ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
         </span>
         <div className="flex gap-xs">
+          {onViewDetail && (
+            <button
+              onClick={() => onViewDetail(pedido)}
+              className="p-2 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors"
+              title="Ver detalle"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
+            </button>
+          )}
           {canCancel && (
             <button
               disabled={isLoading}
@@ -527,11 +547,11 @@ export const OrdersPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal de detalle de pedido cancelado */}
+      {/* Modal de detalle de pedido */}
       <Modal
         isOpen={detailTarget !== null}
         onClose={() => setDetailTarget(null)}
-        title={`Pedido #${detailTarget?.id} — Cancelado`}
+        title={detailTarget ? `Pedido #${detailTarget.id} — ${ESTADO_LABELS[detailTarget.estado_codigo as EstadoPedido] || detailTarget.estado_codigo}` : ''}
         maxWidth="2xl"
         footer={
           <div className="flex justify-end">
