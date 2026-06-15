@@ -1,59 +1,64 @@
 import { api } from '../../../shared/services/api';
-import type { Categoria } from '../../categories/types/categoria';
-import type { Ingrediente } from '../../ingredients/types/ingrediente';
-import type { Producto } from '../../products/types/producto';
-import type { Pedido } from '../../orders/types/pedido';
 
-export interface UserPublic {
-  id: number;
-  nombre: string;
-  apellido: string;
-  email: string;
-  roles: string[];
-  activo: boolean;
-  created_at: string;
+export interface ResumenResponse {
+  ventas_hoy: number;
+  ticket_promedio: number;
+  pedidos_activos: number;
+  mes_actual: number;
 }
 
-export interface PedidoPorDia {
+export interface VentasPeriodoItem {
   fecha: string;
-  fechaLabel: string;
-  cantidad: number;
   ingresos: number;
+  cantidad: number;
 }
 
-export interface TopProducto {
+export interface VentasPeriodoResponse {
+  items: VentasPeriodoItem[];
+}
+
+export interface ProductoTopItem {
   nombre: string;
   cantidad: number;
   ingresos: number;
 }
 
-export interface ResumenStock {
-  bajo: number;
-  sinStock: number;
-  normal: number;
+export interface ProductosTopResponse {
+  items: ProductoTopItem[];
+}
+
+export interface PedidosEstadoResponse {
+  items: Record<string, number>;
+}
+
+export interface IngresosItem {
+  forma_pago_codigo: string;
+  ingresos: number;
+}
+
+export interface IngresosResponse {
+  items: IngresosItem[];
   total: number;
 }
 
-export interface DashboardData {
-  totalCategorias: number;
-  totalProductos: number;
-  totalIngredientes: number;
-  totalPedidos: number;
-  totalUsuarios: number | null; // null si no es admin
-  pedidosPorEstado: Record<string, number>;
-  pedidosPorFormaPago: Record<string, number>;
-  ordenesRecientes: Pedido[];
-  productosStockBajo: Producto[];
-  ingredientesStockBajo: Ingrediente[];
-  pedidosPorDia: PedidoPorDia[];
-  topProductos: TopProducto[];
-  productosConCategoria: { nombre: string; categorias: string[] }[];
-  resumenStock: ResumenStock;
-}
-
 export const dashboardService = {
-  getAll: async (isAdmin: boolean): Promise<DashboardData> => {
-    const data = await api.get<DashboardData>('/api/v1/estadisticas/dashboard').then((r) => r.data);
-    return data;
+  getResumen: async (): Promise<ResumenResponse> => {
+    return api.get<ResumenResponse>('/api/v1/estadisticas/resumen').then((r) => r.data);
+  },
+
+  getVentas: async (desde: string, hasta: string, agrupacion: string = 'dia'): Promise<VentasPeriodoResponse> => {
+    return api.get<VentasPeriodoResponse>(`/api/v1/estadisticas/ventas?desde=${desde}&hasta=${hasta}&agrupacion=${agrupacion}`).then((r) => r.data);
+  },
+
+  getProductosTop: async (limit: number = 10): Promise<ProductosTopResponse> => {
+    return api.get<ProductosTopResponse>(`/api/v1/estadisticas/productos-top?limit=${limit}`).then((r) => r.data);
+  },
+
+  getPedidosPorEstado: async (): Promise<PedidosEstadoResponse> => {
+    return api.get<PedidosEstadoResponse>('/api/v1/estadisticas/pedidos-por-estado').then((r) => r.data);
+  },
+
+  getIngresos: async (desde: string, hasta: string): Promise<IngresosResponse> => {
+    return api.get<IngresosResponse>(`/api/v1/estadisticas/ingresos?desde=${desde}&hasta=${hasta}`).then((r) => r.data);
   },
 };

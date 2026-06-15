@@ -23,8 +23,6 @@ export interface Producto {
     stock_cantidad?: number;
     disponible: boolean;
     unidad_venta_id?: number | null;
-    es_apto_celiaco?: boolean;
-    es_apto_vegano?: boolean;
 
     created_at?: string;
     updated_at?: string;

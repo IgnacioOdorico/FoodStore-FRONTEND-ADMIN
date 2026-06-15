@@ -46,8 +46,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       unidad_venta_id: productoSelected?.unidad_venta_id ?? null,
       imagenes_url: productoSelected?.imagenes_url ?? [],
       disponible: productoSelected?.disponible ?? true,
-      es_apto_celiaco: productoSelected?.es_apto_celiaco ?? false,
-      es_apto_vegano: productoSelected?.es_apto_vegano ?? false,
+
       categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
       ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
         id: i.id!,
@@ -65,8 +64,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         unidad_venta_id: value.unidad_venta_id ? Number(value.unidad_venta_id) : null,
         imagenes_url: value.imagenes_url,
         disponible: value.disponible,
-        es_apto_celiaco: value.es_apto_celiaco,
-        es_apto_vegano: value.es_apto_vegano,
+
         categoria_ids: value.categoria_ids,
         ingredientes_receta: value.ingredientes_receta,
       } as Partial<Producto>);
@@ -83,8 +81,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         unidad_venta_id: productoSelected?.unidad_venta_id ?? null,
         imagenes_url: productoSelected?.imagenes_url ?? [],
         disponible: productoSelected?.disponible ?? true,
-        es_apto_celiaco: productoSelected?.es_apto_celiaco ?? false,
-        es_apto_vegano: productoSelected?.es_apto_vegano ?? false,
+
         categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
         ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
           id: i.id!,
@@ -255,39 +252,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <form.Field
-                  name="es_apto_celiaco"
-                  children={(field) => (
-                    <label className={`flex justify-between items-center p-4 rounded-xl border transition-all cursor-pointer ${field.state.value ? 'bg-amber-500/10 border-amber-500/30 shadow-sm' : 'bg-surface-variant/30 border-outline-variant/50'}`}>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-on-surface">Apto Celíaco</span>
-                        <span className="text-xs text-on-surface-variant mt-0.5">Sin TACC</span>
-                      </div>
-                      <div className={`relative w-10 h-5 rounded-full transition-colors ${field.state.value ? 'bg-amber-500' : 'bg-outline-variant'}`}>
-                        <div className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform ${field.state.value ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </div>
-                      <input type="checkbox" className="hidden" checked={field.state.value} onChange={(e) => field.handleChange(e.target.checked)} disabled={isStockOnly} />
-                    </label>
-                  )}
-                />
 
-                <form.Field
-                  name="es_apto_vegano"
-                  children={(field) => (
-                    <label className={`flex justify-between items-center p-4 rounded-xl border transition-all cursor-pointer ${field.state.value ? 'bg-green-500/10 border-green-500/30 shadow-sm' : 'bg-surface-variant/30 border-outline-variant/50'}`}>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-on-surface">Apto Vegano</span>
-                        <span className="text-xs text-on-surface-variant mt-0.5">Libre de crueldad</span>
-                      </div>
-                      <div className={`relative w-10 h-5 rounded-full transition-colors ${field.state.value ? 'bg-green-600' : 'bg-outline-variant'}`}>
-                        <div className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform ${field.state.value ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </div>
-                      <input type="checkbox" className="hidden" checked={field.state.value} onChange={(e) => field.handleChange(e.target.checked)} disabled={isStockOnly} />
-                    </label>
-                  )}
-                />
-              </div>
             </div>
           </div>
 
