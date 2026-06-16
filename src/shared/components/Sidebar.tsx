@@ -91,7 +91,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Badge estado de conexión WebSocket */}
-      <div className="px-md py-sm">
+      <div className="hidden px-md py-sm">
         <div className={`flex items-center gap-2 px-sm py-xs rounded-lg text-[11px] font-semibold ${isConnected
             ? 'bg-green-500/10 text-green-600'
             : 'bg-red-500/10 text-red-500'
