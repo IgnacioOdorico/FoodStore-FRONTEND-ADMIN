@@ -145,7 +145,7 @@ export const ProductsPage: React.FC = () => {
           isOpen={modalOpen}
           onClose={handleClose}
           productoSelected={selected}
-          categorias={categories || []}
+          categorias={categories?.items ?? []}
           ingredientes={ingredients || []}
           unidades={unidades || []}
           onSave={(val) => saveMutation.mutate(val)}
