@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../services/orders';
 import { usersService } from '../../admin/services/users';
+import type { Usuario } from '../../admin/types/usuario';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { useWebSocket } from '../../../hooks/useWebSocket';
+
 import {
   type EstadoPedido,
   type Pedido,
@@ -11,6 +13,7 @@ import {
   TRANSICIONES_VALIDAS,
 } from '../types/pedido';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
+import { Skeleton } from '../../../shared/ui/Skeleton';
 import { Modal } from '../../../shared/ui/Modal';
 
 // Colummnas del tablero estilo kanban
@@ -87,7 +90,7 @@ const PedidoCard: React.FC<{
   isLoading: boolean;
   isEntregado?: boolean;
   isCancelado?: boolean;
-  usuarios?: any[];
+  usuarios?: Usuario[];
 }> = ({ pedido, onAvanzar, onViewDetail, isLoading, isEntregado, isCancelado, usuarios }) => {
   const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
   const nextStates = transiciones.filter((e) => e !== 'CANCELADO');
@@ -124,7 +127,18 @@ const PedidoCard: React.FC<{
           <span className="text-title-md font-bold">
             ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </span>
-          <span className="material-symbols-outlined text-secondary">check_circle</span>
+          <div className="flex gap-2 items-center">
+            {onViewDetail && (
+              <button
+                onClick={() => onViewDetail(pedido)}
+                className="flex items-center gap-1 text-label-caps text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>info</span>
+                Ver detalle
+              </button>
+            )}
+            <span className="material-symbols-outlined text-secondary">check_circle</span>
+          </div>
         </div>
       </div>
     );
@@ -229,6 +243,15 @@ const PedidoCard: React.FC<{
           ${Number(pedido.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
         </span>
         <div className="flex gap-xs">
+          {onViewDetail && (
+            <button
+              onClick={() => onViewDetail(pedido)}
+              className="p-2 hover:bg-surface-container rounded-full text-on-surface-variant transition-colors"
+              title="Ver detalle"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
+            </button>
+          )}
           {canCancel && (
             <button
               disabled={isLoading}
@@ -268,7 +291,7 @@ const KanbanColumn: React.FC<{
   onAvanzar: (id: number, estado: EstadoPedido) => void;
   onViewDetail?: (pedido: Pedido) => void;
   isLoading: boolean;
-  usuarios?: any[];
+  usuarios?: Usuario[];
 }> = ({ config, pedidos, onAvanzar, onViewDetail, isLoading, usuarios }) => {
   const count = pedidos.length;
   const isTerminal = config.estado === 'ENTREGADO' || config.estado === 'CANCELADO';
@@ -319,30 +342,8 @@ export const OrdersPage: React.FC = () => {
   const isAdmin = hasRole('ADMIN');
   const [search, setSearch] = useState('');
 
-  // ─── WebSocket — actualizaciones en tiempo real ───────────────────────────
-  // El staff (ADMIN/PEDIDOS) se une automáticamente a su room de rol al
-  // conectarse. No necesita subscribe-order: recibe TODOS los eventos de
-  // pedidos por broadcast_to_roles desde el backend.
-  //
-  // WS_CONNECTED se emite al (re)conectar para forzar un refetch de datos
-  // frescos en caso de que se hayan perdido eventos durante la desconexión.
-  useWebSocket({
-    onMessage: (msg) => {
-      // Cualquier evento del backend (o WS_CONNECTED al reconectar)
-      // invalida el caché de pedidos para mantener el kanban actualizado.
-      if (
-        msg.event === 'WS_CONNECTED' ||
-        msg.event === 'PEDIDO_NUEVO' ||
-        msg.event === 'PEDIDO_CONFIRMADO' ||
-        msg.event === 'PEDIDO_EN_PREPARACION' ||
-        msg.event === 'PEDIDO_ENTREGADO' ||
-        msg.event === 'PEDIDO_CANCELADO'
-      ) {
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
-      }
-    },
-  });
- 
+
+
 
   const { data: pedidos, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['orders'],
@@ -367,12 +368,27 @@ export const OrdersPage: React.FC = () => {
   const avanzarMutation = useMutation({
     mutationFn: ({ id, estado, motivo }: { id: number; estado: EstadoPedido; motivo?: string }) =>
       ordersService.avanzarEstado(id, { estado_hacia: estado, motivo }),
+    onMutate: async ({ id, estado }) => {
+      await queryClient.cancelQueries({ queryKey: ['orders'] });
+      const previous = queryClient.getQueryData<Pedido[]>(['orders']);
+      queryClient.setQueryData<Pedido[]>(['orders'], (old) =>
+        old?.map((p) => (p.id === id ? { ...p, estado_codigo: estado } : p)) ?? []
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['orders'], context.previous);
+      }
+      toast.error('Error al cambiar estado: ' + (_err instanceof Error ? _err.message : 'Error desconocido'));
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
       setCancelTarget(null);
       setCancelMotivo('');
     },
-    onError: (e) => alert('Error al cambiar estado: ' + (e instanceof Error ? e.message : 'Error desconocido')),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 
   const handleAvanzar = (id: number, nuevoEstado: EstadoPedido) => {
@@ -469,7 +485,16 @@ export const OrdersPage: React.FC = () => {
 
       {/* Kanban Board */}
       {isLoading ? (
-        <div className="flex-1 flex items-center justify-center"><LoadingState /></div>
+        <div className="flex-1 flex gap-lg overflow-x-auto pb-4">
+          {COLUMNAS.map((col) => (
+            <section key={col.estado} className="w-[300px] flex-shrink-0 flex flex-col gap-md">
+              <Skeleton className="h-8 w-full" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-40 w-full" />
+              ))}
+            </section>
+          ))}
+        </div>
       ) : isError ? (
         <div className="flex-1 flex items-center justify-center"><ErrorState onRetry={() => refetch()} /></div>
       ) : (
@@ -534,11 +559,11 @@ export const OrdersPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal de detalle de pedido cancelado */}
+      {/* Modal de detalle de pedido */}
       <Modal
         isOpen={detailTarget !== null}
         onClose={() => setDetailTarget(null)}
-        title={`Pedido #${detailTarget?.id} — Cancelado`}
+        title={detailTarget ? `Pedido #${detailTarget.id} — ${ESTADO_LABELS[detailTarget.estado_codigo as EstadoPedido] || detailTarget.estado_codigo}` : ''}
         maxWidth="2xl"
         footer={
           <div className="flex justify-end">

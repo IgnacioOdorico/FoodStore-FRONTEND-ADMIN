@@ -10,6 +10,7 @@ import UploadModal from '../../../shared/components/cloudinary/UploadModal';
 
 import type { Categoria } from '../../categories/types/categoria';
 import type { Ingrediente } from '../../ingredients/types/ingrediente';
+import type { UnidadMedida } from '../types/producto';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -18,17 +19,19 @@ interface ProductModalProps {
   productoSelected: Producto | null;
   categorias: Categoria[];
   ingredientes: Ingrediente[];
+  unidades: UnidadMedida[];
   isLoading?: boolean;
 }
 
-export const ProductModal: React.FC<ProductModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSave, 
+export const ProductModal: React.FC<ProductModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
   productoSelected,
   categorias,
   ingredientes,
-  isLoading 
+  unidades,
+  isLoading
 }) => {
   const { hasRole } = useAuthStore();
   const isStockOnly = hasRole('STOCK') && !hasRole('ADMIN');
@@ -40,12 +43,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       descripcion: productoSelected?.descripcion ?? '',
       precio_base: productoSelected?.precio_base ?? 0,
       stock_cantidad: productoSelected?.stock_cantidad ?? 0,
+      unidad_venta_id: productoSelected?.unidad_venta_id ?? null,
       imagenes_url: productoSelected?.imagenes_url ?? [],
       disponible: productoSelected?.disponible ?? true,
+
       categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
       ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
         id: i.id!,
         cantidad: i.cantidad ?? 1,
+        unidad_medida_id: i.unidad_medida_id ?? unidades[0]?.id ?? 1,
         es_removible: i.es_removible ?? false,
       })) ?? [],
     },
@@ -55,8 +61,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         descripcion: value.descripcion,
         precio_base: Number(value.precio_base),
         stock_cantidad: Number(value.stock_cantidad),
+        unidad_venta_id: value.unidad_venta_id ? Number(value.unidad_venta_id) : null,
         imagenes_url: value.imagenes_url,
         disponible: value.disponible,
+
         categoria_ids: value.categoria_ids,
         ingredientes_receta: value.ingredientes_receta,
       } as Partial<Producto>);
@@ -70,12 +78,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         descripcion: productoSelected?.descripcion ?? '',
         precio_base: productoSelected?.precio_base ?? 0,
         stock_cantidad: productoSelected?.stock_cantidad ?? 0,
+        unidad_venta_id: productoSelected?.unidad_venta_id ?? null,
         imagenes_url: productoSelected?.imagenes_url ?? [],
         disponible: productoSelected?.disponible ?? true,
+
         categoria_ids: productoSelected?.categorias?.map(c => c.id!) ?? [],
         ingredientes_receta: productoSelected?.ingredientes?.map(i => ({
           id: i.id!,
           cantidad: i.cantidad ?? 1,
+          unidad_medida_id: i.unidad_medida_id ?? unidades[0]?.id ?? 1,
           es_removible: i.es_removible ?? false,
         })) ?? [],
       });
@@ -95,7 +106,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
       }
     >
-      <form 
+      <form
         id="product-form"
         onSubmit={(e) => {
           e.preventDefault();
@@ -105,11 +116,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         className="flex flex-col gap-6 w-full overflow-x-hidden"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
+
           <div className="lg:col-span-7 flex flex-col gap-5">
             <div className="flex flex-col gap-5 p-5 bg-surface-variant/20 rounded-xl border border-outline-variant/50 shadow-sm">
               <h3 className="text-sm font-bold text-on-surface uppercase tracking-wider">Información Básica</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <form.Field
                   name="nombre"
@@ -120,75 +131,97 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 />
                 <form.Field
                   name="precio_base"
-                  validators={{ onChange: ({ value }) => value <= 0 ? 'Debe ser mayor a 0' : undefined }}
+                  validators={{ onChange: ({ value }) => Number(value) <= 0 ? 'Debe ser mayor a 0' : undefined }}
                   children={(field) => (
-                    <Input label="Precio base ($)" type="number" disabled={isStockOnly} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
+                    <Input label="Precio base ($)" type="number" disabled={isStockOnly} value={field.state.value === 0 ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? '' : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
                   )}
                 />
               </div>
 
-              <form.Field
-                name="stock_cantidad"
-                validators={{ onChange: ({ value }) => value < 0 ? 'No negativo' : undefined }}
-                children={(field) => (
-                  <Input label="Stock disponible (unidades)" type="number" value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form.Field
+                  name="stock_cantidad"
+                  validators={{ onChange: ({ value }) => Number(value) < 0 ? 'No negativo' : undefined }}
+                  children={(field) => (
+                    <Input label="Stock disponible" type="number" value={field.state.value === 0 && !productoSelected ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? '' : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
+                  )}
+                />
+
+                <form.Field
+                  name="unidad_venta_id"
+                  children={(field) => (
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <label className="text-label-caps text-on-surface-variant">Unidad de Venta</label>
+                      <select
+                        disabled={isStockOnly}
+                        className="input-field h-[42px] bg-surface cursor-pointer"
+                        value={field.state.value || ''}
+                        onChange={(e) => field.handleChange(e.target.value ? Number(e.target.value) : null)}
+                      >
+                        <option value="">Seleccione...</option>
+                        {unidades.map(u => (
+                          <option key={u.id} value={u.id}>{u.nombre} ({u.simbolo})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                />
+              </div>
 
               <form.Field
                 name="imagenes_url"
                 children={(field) => (
                   <div className="flex flex-col gap-1.5 w-full">
                     <label className="text-label-caps text-on-surface-variant">Imágenes (Opcional)</label>
-                     {field.state.value && field.state.value.length > 0 && (
-                       <div className="grid grid-cols-2 gap-2 mb-2">
-                         {field.state.value.map((url: string, index: number) => (
-                           <div key={index} className="relative w-full h-32 rounded-lg border border-outline-variant overflow-hidden bg-surface-variant/30">
-                             <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
-                             {!isStockOnly && (
-                               <button type="button" onClick={() => {
-                                 const newUrls = [...field.state.value];
-                                 newUrls.splice(index, 1);
-                                 field.handleChange(newUrls);
-                               }} className="absolute top-2 right-2 p-1.5 bg-error rounded-lg hover:bg-error/80 transition-colors shadow-sm">
-                                 <X className="w-4 h-4 text-white" />
-                               </button>
-                             )}
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                     {!isStockOnly && (
-                       <div className="flex gap-2 items-center">
-                         <Button type="button" variant="secondary" onClick={() => setIsUploadModalOpen(true)}>
-                           Subir Imágenes
-                         </Button>
-                         <Input 
-                           placeholder="O pegar URL y presionar Enter" 
-                           onKeyDown={(e) => {
-                             if (e.key === 'Enter') {
-                               e.preventDefault();
-                               const input = e.target as HTMLInputElement;
-                               if (input.value) {
-                                 field.handleChange([...field.state.value, input.value]);
-                                 input.value = '';
-                               }
-                             }
-                           }} 
-                         />
-                       </div>
-                     )}
-                     {isUploadModalOpen && (
-                       <UploadModal
-                         onClose={() => setIsUploadModalOpen(false)}
-                         onUploadComplete={(responses) => {
-                           if (responses && responses.length > 0) {
-                             const newUrls = responses.map(r => r.secure_url);
-                             field.handleChange([...field.state.value, ...newUrls]);
-                           }
-                         }}
-                       />
-                     )}
+                    {field.state.value && field.state.value.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        {field.state.value.map((url: string, index: number) => (
+                          <div key={index} className="relative w-full h-32 rounded-lg border border-outline-variant overflow-hidden bg-surface-variant/30">
+                            <img src={url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                            {!isStockOnly && (
+                              <button type="button" onClick={() => {
+                                const newUrls = [...field.state.value];
+                                newUrls.splice(index, 1);
+                                field.handleChange(newUrls);
+                              }} className="absolute top-2 right-2 p-1.5 bg-error rounded-lg hover:bg-error/80 transition-colors shadow-sm">
+                                <X className="w-4 h-4 text-white" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!isStockOnly && (
+                      <div className="flex gap-2 items-center">
+                        <Button type="button" variant="secondary" onClick={() => setIsUploadModalOpen(true)}>
+                          Subir Imágenes
+                        </Button>
+                        <Input
+                          placeholder="O pegar URL y presionar Enter"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const input = e.target as HTMLInputElement;
+                              if (input.value) {
+                                field.handleChange([...field.state.value, input.value]);
+                                input.value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                    {isUploadModalOpen && (
+                      <UploadModal
+                        onClose={() => setIsUploadModalOpen(false)}
+                        onUploadComplete={(responses) => {
+                          if (responses && responses.length > 0) {
+                            const newUrls = responses.map(r => r.secure_url);
+                            field.handleChange([...field.state.value, ...newUrls]);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 )}
               />
@@ -214,15 +247,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <div className={`relative w-12 h-6 rounded-full transition-colors ${field.state.value ? 'bg-primary' : 'bg-outline-variant'}`}>
                       <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${field.state.value ? 'translate-x-6' : 'translate-x-0'}`} />
                     </div>
-                    <input type="checkbox" className="hidden" checked={field.state.value} onChange={(e) => field.handleChange(e.target.checked)} />
+                    <input type="checkbox" className="hidden" checked={field.state.value} onChange={(e) => field.handleChange(e.target.checked)} disabled={isStockOnly && false /* asumo que puede cambiar disp */} />
                   </label>
                 )}
               />
+
+
             </div>
           </div>
 
           <div className="lg:col-span-5 flex flex-col gap-5">
-            
+
             <form.Field
               name="categoria_ids"
               validators={{ onChange: ({ value }) => !value || value.length === 0 ? 'Mínimo 1 categoría' : undefined }}
@@ -262,20 +297,35 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                               {selected && <div className="w-2 h-2 bg-white rounded-sm" />}
                             </div>
                             <input type="checkbox" className="hidden" checked={!!selected} onChange={(e) => {
-                              const val = e.target.checked ? [...field.state.value, { id: ing.id!, cantidad: 1, es_removible: false }] : field.state.value.filter(i => i.id !== ing.id);
+                              const val = e.target.checked ? [...field.state.value, { id: ing.id!, cantidad: 1, unidad_medida_id: unidades[0]?.id ?? 1, es_removible: false }] : field.state.value.filter(i => i.id !== ing.id);
                               field.handleChange(val);
                             }} />
                             <span className={`text-sm font-bold flex-1 ${selected ? 'text-primary' : 'text-on-surface-variant'}`}>{ing.nombre}</span>
                           </label>
-                          
+
                           {selected && (
                             <div className="flex items-center gap-4 pl-8 mt-2 border-t border-primary/10 pt-4 pb-1">
                               <div className="flex flex-col flex-1 gap-1.5">
                                 <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cantidad</span>
                                 <input type="number" min="0.1" step="0.1" className="input-field text-xs py-1.5 px-3 h-9 bg-white" placeholder="Cant." value={selected.cantidad} onChange={(e) => {
-                                  const updated = field.state.value.map(i => i.id === ing.id ? { ...i, cantidad: Number(e.target.value) || 1 } : i);
+                                  const updated = field.state.value.map(i => i.id === ing.id ? { ...i, cantidad: e.target.value === '' ? 0 : Number(e.target.value) } : i);
                                   field.handleChange(updated);
                                 }} />
+                              </div>
+                              <div className="flex flex-col flex-1 gap-1.5">
+                                <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Unidad</span>
+                                <select
+                                  className="input-field text-xs py-1.5 px-2 h-9 bg-white cursor-pointer"
+                                  value={selected.unidad_medida_id}
+                                  onChange={(e) => {
+                                    const updated = field.state.value.map(i => i.id === ing.id ? { ...i, unidad_medida_id: Number(e.target.value) } : i);
+                                    field.handleChange(updated);
+                                  }}
+                                >
+                                  {unidades.map(u => (
+                                    <option key={u.id} value={u.id}>{u.simbolo}</option>
+                                  ))}
+                                </select>
                               </div>
                               <label className="flex flex-col flex-1 gap-1.5 cursor-pointer">
                                 <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">¿Removible?</span>

@@ -64,6 +64,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({ data, page, totalPag
             <p className="text-body-sm text-on-surface-variant opacity-60 line-clamp-1">
               {info.row.original.descripcion}
             </p>
+
           </div>
         </div>
       ),

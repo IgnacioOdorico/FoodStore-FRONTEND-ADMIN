@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ingredientsService } from '../services/ingredients';
 import { IngredientModal } from '../components/IngredientModal';
@@ -27,13 +28,13 @@ export const IngredientsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['ingredients'] });
       handleClose();
     },
-    onError: (e) => alert('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => ingredientsService.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
-    onError: (e) => alert('Error al borrar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al borrar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const handleOpen  = (i?: Ingrediente) => { if (!isAdmin) return; setSelected(i || null); setModalOpen(true); };

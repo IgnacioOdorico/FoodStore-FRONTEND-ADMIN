@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from './router/AppRouter';
 import { useAuthStore } from './store/useAuthStore';
@@ -47,6 +48,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppShell />
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }

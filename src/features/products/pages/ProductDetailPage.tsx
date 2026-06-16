@@ -146,6 +146,11 @@ export const ProductDetailPage: React.FC = () => {
                         }`}>
                           {ing.nombre}
                         </span>
+                        {ing.cantidad > 0 && (
+                          <span className="text-[8px] font-bold text-cocoa/50">
+                            {ing.cantidad}{ing.unidad_medida_simbolo ? ` ${ing.unidad_medida_simbolo}` : ''}
+                          </span>
+                        )}
                         {ing.es_alergeno && (
                           <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Alérgeno</span>
                         )}

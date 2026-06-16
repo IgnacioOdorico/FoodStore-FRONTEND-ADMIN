@@ -8,13 +8,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 import type { TopProducto } from '../services/dashboard';
 
 interface Props {
   data: TopProducto[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload as TopProducto;
   return (

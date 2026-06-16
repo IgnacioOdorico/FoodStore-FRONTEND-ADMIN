@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { api } from '../../../shared/services/api';
@@ -43,7 +44,7 @@ export const ProfilePage: React.FC = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     },
-    onError: (e) => alert('Error al guardar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al guardar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const handleChange = (key: keyof typeof form, val: string) => {

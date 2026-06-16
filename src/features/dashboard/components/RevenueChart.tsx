@@ -1,13 +1,14 @@
 import React from 'react';
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 import type { PedidoPorDia } from '../services/dashboard';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
 const formatCurrency = (value: number) =>
   `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-xl border border-outline-variant shadow-card p-3">
@@ -30,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const RevenueChart: React.FC<Props> = ({ data }) => {
-  const total = data.reduce((acc, d) => acc + d.ingresos, 0);
+  const total = data.reduce((acc, d) => acc + Number(d.ingresos), 0);
 
   if (data.length === 0) {
     return (
@@ -50,14 +51,8 @@ export const RevenueChart: React.FC<Props> = ({ data }) => {
       </div>
       <div className="h-[180px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-            <defs>
-              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#006192" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#006192" stopOpacity={0.01} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5beb5" opacity={0.3} />
+          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5beb5" opacity={0.3} vertical={false} />
             <XAxis
               dataKey="fechaLabel"
               tick={{ fontSize: 11, fill: '#5c403a' }}
@@ -65,22 +60,20 @@ export const RevenueChart: React.FC<Props> = ({ data }) => {
               axisLine={{ stroke: '#e5beb5', opacity: 0.5 }}
             />
             <YAxis
+              width={65}
               tick={{ fontSize: 11, fill: '#5c403a' }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `$${v}`}
+              tickFormatter={(v) => `$${Math.round(v).toLocaleString('es-AR')}`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
+            <Bar
               dataKey="ingresos"
-              stroke="#006192"
-              strokeWidth={2}
-              fill="url(#revenueGradient)"
-              dot={{ r: 2, fill: '#006192', strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: '#007bb8', strokeWidth: 0 }}
+              fill="#006192"
+              radius={[4, 4, 0, 0]}
+              barSize={24}
             />
-          </AreaChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>
