@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { categoriesService } from '../services/categories';
 import { CategoriaModal } from '../components/CategoriaModal';
@@ -104,23 +105,40 @@ export const CategoriesPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState<Categoria | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 12;
+
+  const skip = (page - 1) * PAGE_SIZE;
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoriesService.getAll,
+    queryKey: ['categories', skip, PAGE_SIZE],
+    queryFn: () => categoriesService.getAll({ skip, limit: PAGE_SIZE }),
+    placeholderData: (prev) => prev,
   });
+
+  // Data completa sin paginar para KPI y modal de edición
+  const { data: allData } = useQuery({
+    queryKey: ['categories', 'all'],
+    queryFn: () => categoriesService.getAll({ skip: 0, limit: 100 }),
+    staleTime: 60_000,
+  });
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const allItems = allData?.items ?? [];
 
   const saveMutation = useMutation({
     mutationFn: (d: Partial<Categoria>) =>
       selected?.id ? categoriesService.update(selected.id, d) : categoriesService.create(d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['categories'] }); handleClose(); },
-    onError: (e) => alert('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => categoriesService.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
-    onError: (e) => alert('Error al borrar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al borrar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const handleOpen  = (c?: Categoria) => { if (!isAdmin) return; setSelected(c || null); setModalOpen(true); };
@@ -130,11 +148,8 @@ export const CategoriesPage: React.FC = () => {
     if (window.confirm('¿Eliminar esta categoría?')) deleteMutation.mutate(id);
   };
 
-  const roots = data?.filter((c) => !c.parent_id) ?? [];
-  const subs  = data?.filter((c) => !!c.parent_id) ?? [];
-
-  const getSubcategorias = (parentId: number) =>
-    (data ?? []).filter((c) => c.parent_id === parentId);
+  const roots = items.filter((c) => !c.parent_id);
+  const subs  = items.filter((c) => !!c.parent_id);
 
   return (
     <div className="flex flex-col gap-lg animate-in fade-in duration-500">
@@ -158,7 +173,7 @@ export const CategoriesPage: React.FC = () => {
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>grid_view</span>
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => { setViewMode('list'); setPage(1); }}
               className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
               title="Vista lista"
             >
@@ -180,17 +195,17 @@ export const CategoriesPage: React.FC = () => {
         <div className="kpi-card">
           <span className="material-symbols-outlined text-primary mb-xs">category</span>
           <span className="text-label-caps text-on-surface-variant">Total Categorías</span>
-          <span className="text-headline-lg font-bold text-on-surface">{data?.length ?? 0}</span>
+          <span className="text-headline-lg font-bold text-on-surface">{allItems.length}</span>
         </div>
         <div className="kpi-card">
           <span className="material-symbols-outlined text-secondary mb-xs">folder</span>
           <span className="text-label-caps text-on-surface-variant">Categorías Raíz</span>
-          <span className="text-headline-lg font-bold text-on-surface">{roots.length}</span>
+          <span className="text-headline-lg font-bold text-on-surface">{allItems.filter((c) => !c.parent_id).length}</span>
         </div>
         <div className="kpi-card">
           <span className="material-symbols-outlined text-tertiary mb-xs">subdirectory_arrow_right</span>
           <span className="text-label-caps text-on-surface-variant">Subcategorías</span>
-          <span className="text-headline-lg font-bold text-on-surface">{subs.length}</span>
+          <span className="text-headline-lg font-bold text-on-surface">{allItems.filter((c) => !!c.parent_id).length}</span>
         </div>
       </div>
 
@@ -199,23 +214,23 @@ export const CategoriesPage: React.FC = () => {
         <LoadingState />
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
-      ) : !data || data.length === 0 ? (
+      ) : !allItems || allItems.length === 0 ? (
         <EmptyState message="No hay categorías creadas aún." />
       ) : viewMode === 'grid' ? (
         <div className="space-y-lg">
           {/* Root categories */}
-          {roots.length > 0 && (
+          {allItems.filter((c) => !c.parent_id).length > 0 && (
             <section>
               <h3 className="text-title-md font-semibold text-on-surface mb-gutter flex items-center gap-2">
                 <span className="material-symbols-outlined text-secondary" style={{ fontSize: 20 }}>folder_open</span>
                 Categorías Principales
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
-                {roots.map((cat) => (
+                {allItems.filter((c) => !c.parent_id).map((cat) => (
                   <CategoriaCard
                     key={cat.id}
                     categoria={cat}
-                    subcategorias={getSubcategorias(cat.id!)}
+                    subcategorias={allItems.filter((c) => c.parent_id === cat.id)}
                     isAdmin={isAdmin}
                     onEdit={handleOpen}
                     onDelete={handleDelete}
@@ -226,18 +241,18 @@ export const CategoriesPage: React.FC = () => {
           )}
 
           {/* Subcategories */}
-          {subs.length > 0 && (
+          {allItems.filter((c) => !!c.parent_id).length > 0 && (
             <section>
               <h3 className="text-title-md font-semibold text-on-surface mb-gutter flex items-center gap-2">
                 <span className="material-symbols-outlined text-tertiary" style={{ fontSize: 20 }}>subdirectory_arrow_right</span>
                 Subcategorías
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
-                {subs.map((cat) => (
+                {allItems.filter((c) => !!c.parent_id).map((cat) => (
                   <CategoriaCard
                     key={cat.id}
                     categoria={cat}
-                    subcategorias={getSubcategorias(cat.id!)}
+                    subcategorias={allItems.filter((c) => c.parent_id === cat.id)}
                     isAdmin={isAdmin}
                     onEdit={handleOpen}
                     onDelete={handleDelete}
@@ -248,7 +263,7 @@ export const CategoriesPage: React.FC = () => {
           )}
         </div>
       ) : (
-        /* List view: tabla compacta */
+        /* List view: tabla compacta con paginación */
         <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 border-b border-outline-variant">
@@ -260,7 +275,7 @@ export const CategoriesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {data.map((cat) => (
+              {items.map((cat) => (
                 <tr key={cat.id} className="group hover:bg-slate-50 transition-colors">
                   <td className="table-td">
                     <div className="flex items-center gap-3">
@@ -304,10 +319,30 @@ export const CategoriesPage: React.FC = () => {
               ))}
             </tbody>
           </table>
-          <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant">
+          {/* Paginación */}
+          <div className="bg-surface-container-low px-md py-sm border-t border-outline-variant flex items-center justify-between">
             <p className="text-body-sm text-on-surface-variant">
-              Mostrando <span className="font-bold">{data.length}</span> categorías
+              Mostrando <span className="font-bold">{items.length}</span> de <span className="font-bold">{total}</span> categorías
             </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border border-outline-variant disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface-container transition-colors"
+              >
+                Anterior
+              </button>
+              <span className="text-body-sm text-on-surface-variant font-semibold">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border border-outline-variant disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface-container transition-colors"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -317,7 +352,7 @@ export const CategoriesPage: React.FC = () => {
           isOpen={modalOpen}
           onClose={handleClose}
           categoriaSelected={selected}
-          categorias={data || []}
+          categorias={allItems}
           onSave={(v) => saveMutation.mutate(v)}
           isLoading={saveMutation.isPending}
         />

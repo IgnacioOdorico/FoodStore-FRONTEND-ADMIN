@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../services/orders';
 import { usersService } from '../../admin/services/users';
+import type { Usuario } from '../../admin/types/usuario';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 import {
@@ -11,6 +13,7 @@ import {
   TRANSICIONES_VALIDAS,
 } from '../types/pedido';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
+import { Skeleton } from '../../../shared/ui/Skeleton';
 import { Modal } from '../../../shared/ui/Modal';
 
 // Colummnas del tablero estilo kanban
@@ -87,7 +90,7 @@ const PedidoCard: React.FC<{
   isLoading: boolean;
   isEntregado?: boolean;
   isCancelado?: boolean;
-  usuarios?: any[];
+  usuarios?: Usuario[];
 }> = ({ pedido, onAvanzar, onViewDetail, isLoading, isEntregado, isCancelado, usuarios }) => {
   const transiciones = TRANSICIONES_VALIDAS[pedido.estado_codigo];
   const nextStates = transiciones.filter((e) => e !== 'CANCELADO');
@@ -288,7 +291,7 @@ const KanbanColumn: React.FC<{
   onAvanzar: (id: number, estado: EstadoPedido) => void;
   onViewDetail?: (pedido: Pedido) => void;
   isLoading: boolean;
-  usuarios?: any[];
+  usuarios?: Usuario[];
 }> = ({ config, pedidos, onAvanzar, onViewDetail, isLoading, usuarios }) => {
   const count = pedidos.length;
   const isTerminal = config.estado === 'ENTREGADO' || config.estado === 'CANCELADO';
@@ -377,7 +380,7 @@ export const OrdersPage: React.FC = () => {
       if (context?.previous) {
         queryClient.setQueryData(['orders'], context.previous);
       }
-      alert('Error al cambiar estado: ' + (_err instanceof Error ? _err.message : 'Error desconocido'));
+      toast.error('Error al cambiar estado: ' + (_err instanceof Error ? _err.message : 'Error desconocido'));
     },
     onSuccess: () => {
       setCancelTarget(null);
@@ -482,7 +485,16 @@ export const OrdersPage: React.FC = () => {
 
       {/* Kanban Board */}
       {isLoading ? (
-        <div className="flex-1 flex items-center justify-center"><LoadingState /></div>
+        <div className="flex-1 flex gap-lg overflow-x-auto pb-4">
+          {COLUMNAS.map((col) => (
+            <section key={col.estado} className="w-[300px] flex-shrink-0 flex flex-col gap-md">
+              <Skeleton className="h-8 w-full" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-40 w-full" />
+              ))}
+            </section>
+          ))}
+        </div>
       ) : isError ? (
         <div className="flex-1 flex items-center justify-center"><ErrorState onRetry={() => refetch()} /></div>
       ) : (

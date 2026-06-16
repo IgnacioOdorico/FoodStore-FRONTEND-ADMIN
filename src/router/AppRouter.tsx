@@ -18,8 +18,7 @@ import { OrdersPage } from "../features/orders/pages/OrdersPage";
 import { ProfilePage } from "../features/profile/pages/ProfilePage";
 
 import { Sidebar } from "../shared/components/Sidebar";
-import { useWebSocket } from "../hooks/useWebSocket";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAdminOrdersFeed } from "../hooks/useAdminOrdersFeed";
 import { useAuthStore } from "../store/useAuthStore";
 
 // ── Rutas sin sidebar 
@@ -28,21 +27,9 @@ const PUBLIC_PATHS = ["/login", "/forbidden"];
 const Layout = () => {
   const location = useLocation();
   const isPublic = PUBLIC_PATHS.some((p) => location.pathname.startsWith(p));
-  const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
-  useWebSocket({
-    enabled: !!user && !isPublic,
-    onMessage: (msg) => {
-      const orderEvents = new Set([
-        'PEDIDO_NUEVO', 'PEDIDO_CONFIRMADO', 'PEDIDO_EN_PREPARACION',
-        'PEDIDO_EN_CAMINO', 'PEDIDO_ENTREGADO', 'PEDIDO_CANCELADO', 'WS_RECONNECTED',
-      ]);
-      if (orderEvents.has(msg.event)) {
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
-      }
-    },
-  });
+  useAdminOrdersFeed(!!user && !isPublic);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -52,9 +39,12 @@ const Layout = () => {
         className={
           isPublic
             ? "flex-1"
-            : "flex-1 ml-[240px] p-lg min-h-screen overflow-y-auto"
+            : "flex-1 md:ml-[240px] ml-0 p-lg min-h-screen overflow-y-auto"
         }
       >
+        {/* Spacer for hamburger button on mobile */}
+        {!isPublic && <div className="h-12 md:hidden" />}
+
         <Routes>
 
           <Route path="/login" element={<LoginPage />} />

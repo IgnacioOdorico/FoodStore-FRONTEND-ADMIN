@@ -2,6 +2,23 @@ import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, _token: unknown = null) {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(_token);
+    }
+  });
+  failedQueue = [];
+}
+
 // ── Inactividad max de 30 minutos ─────────────────────────────────────────────
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 
@@ -31,20 +48,46 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-const isOnLoginPage = () =>
-  window.location.pathname === '/login' || window.location.pathname === '/forbidden';
-
 api.interceptors.response.use(
   (response) => {
     updateActivity();
     return response;
   },
-  (error) => {
-    const isAuthEndpoint = error.config?.url?.includes('/auth/token');
+  async (error) => {
+    const status = error.response?.status;
+    const url: string = error.config?.url || '';
 
-    if (error.response?.status === 401 && !isAuthEndpoint && !isOnLoginPage()) {
-      clearActivity();
-      window.location.href = '/login';
+    const isSessionEndpoint =
+      url.includes('/auth/token') ||
+      url.includes('/auth/me') ||
+      url.includes('/auth/refresh') ||
+      url.includes('/auth/logout') ||
+      url.includes('/auth/register');
+
+    const onAuthPage = window.location.pathname.startsWith('/login');
+
+    if (status === 401 && !isSessionEndpoint && !onAuthPage) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          await api.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+          processQueue(null);
+          return api(error.config);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          clearActivity();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      } else {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => {
+          return api(error.config);
+        });
+      }
     }
 
     const message =
@@ -82,4 +125,13 @@ export async function apiFetch<T = unknown>(
   else                          response = await api.patch<T>(endpoint, body, cfg);
 
   return response.data;
+}
+
+export async function attemptRefresh(): Promise<boolean> {
+  try {
+    await api.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { apiLogin, apiFetch, updateActivity, clearActivity, isSessionExpiredByInactivity } from "../shared/services/api";
 import type { IRole, IUser } from "../shared/types/auth.types";
 
@@ -8,6 +9,7 @@ interface AuthState {
   error: string | null;
   /** true cuando ya se intentó restaurar la sesión al arrancar (con o sin éxito) */
   initialized: boolean;
+  accessToken: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   /** Intenta restaurar la sesión desde la cookie existente. Llamar al arrancar la app. */
   fetchUser: () => Promise<void>;
@@ -15,11 +17,14 @@ interface AuthState {
   hasRole: (...roles: IRole[]) => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
   user: null,
   loading: false,
   error: null,
   initialized: false,
+  accessToken: null,
 
   login: async (email, password) => {
     set({ loading: true, error: null });
@@ -47,6 +52,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = await apiFetch<IUser>("/api/v1/auth/me");
       set({ user, initialized: true });
     } catch {
+      try {
+        const { attemptRefresh } = await import("../shared/services/api");
+        const ok = await attemptRefresh();
+        if (ok) {
+          const user = await apiFetch<IUser>("/api/v1/auth/me");
+          set({ user, initialized: true });
+          return;
+        }
+      } catch { /* fallback */ }
       set({ user: null, initialized: true });
     }
   },
@@ -62,4 +76,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!user) return false;
     return user.roles.some((r) => roles.includes(r));
   },
-}));
+}),
+{
+  name: 'foodstore-admin-auth',
+  partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
+},
+));

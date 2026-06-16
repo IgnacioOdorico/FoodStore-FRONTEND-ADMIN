@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsService } from '../services/products';
 import { ProductTable } from '../components/ProductTable';
 import { ProductModal } from '../components/ProductModal';
 import { LoadingState, ErrorState, EmptyState } from '../../../shared/ui/States';
+import { SkeletonTable } from '../../../shared/ui/Skeleton';
 import type { Producto } from '../types/producto';
 import { categoriesService } from '../../categories/services/categories';
 import { ingredientsService } from '../../ingredients/services/ingredients';
@@ -52,20 +54,20 @@ export const ProductsPage: React.FC = () => {
     mutationFn: (data: Partial<Producto>) =>
       selected?.id ? productsService.update(selected.id, data) : productsService.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['products'] }); handleClose(); },
-    onError: (e) => alert('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => productsService.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
-    onError: (e) => alert('Error al eliminar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al eliminar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const toggleDisponibleMutation = useMutation({
     mutationFn: ({ id, disponible }: { id: number; disponible: boolean }) =>
       productsService.patchDisponibilidad(id, disponible),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
-    onError: (e) => alert('Error al cambiar disponibilidad: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al cambiar disponibilidad: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const handleOpen  = (p?: Producto) => { if (!canEdit) return; setSelected(p || null); setModalOpen(true); };
@@ -121,7 +123,7 @@ export const ProductsPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <LoadingState />
+        <SkeletonTable rows={10} cols={6} />
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : products.length > 0 ? (

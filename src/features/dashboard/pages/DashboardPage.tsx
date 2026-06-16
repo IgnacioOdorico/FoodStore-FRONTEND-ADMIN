@@ -3,6 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { dashboardService } from '../services/dashboard';
 import { LoadingState, ErrorState } from '../../../shared/ui/States';
+import { Skeleton } from '../../../shared/ui/Skeleton';
 import { ESTADO_LABELS, ESTADO_COLORS } from '../../orders/types/pedido';
 import { SalesChart } from '../components/SalesChart';
 import { RevenueChart } from '../components/RevenueChart';
@@ -80,7 +81,25 @@ export const DashboardPage: React.FC = () => {
   const isLoading = results.some((q) => q.isLoading);
   const isError = results.some((q) => q.isError);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-lg pb-8 animate-in fade-in duration-500">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+          <Skeleton className="h-64 lg:col-span-2 rounded-xl" />
+          <Skeleton className="h-64 lg:col-span-1 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
   if (isError) return <ErrorState onRetry={() => results.forEach(q => q.refetch())} />;
   
   if (results.some((q) => !q.data)) {
@@ -99,7 +118,7 @@ export const DashboardPage: React.FC = () => {
   const pedidosEstado = estadosQuery.data?.items || {};
 
   const statusKeys = Object.keys(pedidosEstado).sort();
-  const totalPedidosEstado = Object.values(pedidosEstado).reduce((a: any, b: any) => a + b, 0);
+  const totalPedidosEstado = Object.values(pedidosEstado).reduce((a: number, b: number) => a + b, 0);
 
   const mappedVentas = ventas.map(v => ({
     ...v,
@@ -164,12 +183,12 @@ export const DashboardPage: React.FC = () => {
               </select>
             }
           >
-            <SalesChart data={mappedVentas as any} />
+            <SalesChart data={mappedVentas} />
           </SectionCard>
         </div>
         <div className="lg:col-span-1">
           <SectionCard title="Ingresos">
-            <RevenueChart data={mappedVentas as any} />
+            <RevenueChart data={mappedVentas} />
           </SectionCard>
         </div>
       </div>
@@ -179,7 +198,7 @@ export const DashboardPage: React.FC = () => {
           <OrdersPieChart data={pedidosEstado} />
         </SectionCard>
         <SectionCard title="Productos Más Vendidos">
-          <TopProductsChart data={topProductos as any} />
+          <TopProductsChart data={topProductos} />
         </SectionCard>
       </div>
 

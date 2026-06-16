@@ -8,13 +8,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 import type { PedidoPorDia } from '../services/dashboard';
 
 interface Props {
   data: PedidoPorDia[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-xl border border-outline-variant shadow-card p-3">

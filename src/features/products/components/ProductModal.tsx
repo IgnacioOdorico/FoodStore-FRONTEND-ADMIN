@@ -133,7 +133,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   name="precio_base"
                   validators={{ onChange: ({ value }) => Number(value) <= 0 ? 'Debe ser mayor a 0' : undefined }}
                   children={(field) => (
-                    <Input label="Precio base ($)" type="number" disabled={isStockOnly} value={field.state.value === 0 ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? ('' as any) : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
+                    <Input label="Precio base ($)" type="number" disabled={isStockOnly} value={field.state.value === 0 ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? '' : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
                   )}
                 />
               </div>
@@ -143,7 +143,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   name="stock_cantidad"
                   validators={{ onChange: ({ value }) => Number(value) < 0 ? 'No negativo' : undefined }}
                   children={(field) => (
-                    <Input label="Stock disponible" type="number" value={field.state.value === 0 && !productoSelected ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? ('' as any) : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
+                    <Input label="Stock disponible" type="number" value={field.state.value === 0 && !productoSelected ? '' : field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value === '' ? '' : Number(e.target.value))} error={field.state.meta.errors?.[0]?.toString()} />
                   )}
                 />
 
@@ -308,7 +308,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                               <div className="flex flex-col flex-1 gap-1.5">
                                 <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cantidad</span>
                                 <input type="number" min="0.1" step="0.1" className="input-field text-xs py-1.5 px-3 h-9 bg-white" placeholder="Cant." value={selected.cantidad} onChange={(e) => {
-                                  const updated = field.state.value.map(i => i.id === ing.id ? { ...i, cantidad: e.target.value === '' ? ('' as any) : Number(e.target.value) } : i);
+                                  const updated = field.state.value.map(i => i.id === ing.id ? { ...i, cantidad: e.target.value === '' ? 0 : Number(e.target.value) } : i);
                                   field.handleChange(updated);
                                 }} />
                               </div>

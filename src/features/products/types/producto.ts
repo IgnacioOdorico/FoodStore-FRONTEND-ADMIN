@@ -4,6 +4,7 @@ import type { Ingrediente } from "../../ingredients/types/ingrediente";
 export interface IngredienteReceta extends Ingrediente {
     cantidad: number;
     unidad_medida_id: number;
+    unidad_medida_simbolo?: string;
     es_removible: boolean;
 }
 

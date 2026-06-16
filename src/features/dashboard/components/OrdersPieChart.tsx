@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 import { ESTADO_LABELS } from '../../orders/types/pedido';
 
 interface Props {
@@ -38,7 +39,7 @@ const STATUS_BG: Record<string, string> = {
 const formatCurrency = (value: number) =>
   `$${value.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
 
-const CustomTooltipContent = ({ active, payload }: any) => {
+const CustomTooltipContent = ({ active, payload }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload as PieItem;
   return (
@@ -54,11 +55,16 @@ const CustomTooltipContent = ({ active, payload }: any) => {
   );
 };
 
-const renderLegend = (props: any) => {
+interface LegendPayloadItem {
+  color: string;
+  payload?: { name: string };
+}
+
+const renderLegend = (props: { payload?: LegendPayloadItem[] }) => {
   const { payload } = props;
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-3">
-      {payload.map((entry: any, index: number) => (
+      {payload?.map((entry, index: number) => (
         <div key={`legend-${index}`} className="flex items-center gap-1.5">
           <span
             className="w-2.5 h-2.5 rounded-full"

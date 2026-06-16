@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '../services/users';
@@ -259,7 +260,7 @@ const EditEmployeeModal: React.FC<{
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => { e.preventDefault(); onSave(user.id, form); };
 
-  const handleChange = (key: keyof UpdateUsuarioDto, value: any) => {
+  const handleChange = (key: keyof UpdateUsuarioDto, value: string | IRole[]) => {
     setForm((p) => ({ ...p, [key]: value }));
     if (error) clearError();
   };
@@ -425,13 +426,13 @@ export const UsersPage: React.FC = () => {
   const reactivateMutation = useMutation({
     mutationFn: usersService.reactivar,
     onSuccess: () => { invalidate(); setConfirmAction(null); },
-    onError: (e) => alert('Error al reactivar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al reactivar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: usersService.delete,
     onSuccess: () => { invalidate(); setConfirmAction(null); },
-    onError: (e) => alert('Error al desactivar: ' + (e instanceof Error ? e.message : 'desconocido')),
+    onError: (e) => toast.error('Error al desactivar: ' + (e instanceof Error ? e.message : 'desconocido')),
   });
 
   const handleConfirm = () => {

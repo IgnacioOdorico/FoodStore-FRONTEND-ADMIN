@@ -13,6 +13,8 @@ export interface VentasPeriodoItem {
   cantidad: number;
 }
 
+export type PedidoPorDia = VentasPeriodoItem & { fechaLabel?: string };
+
 export interface VentasPeriodoResponse {
   items: VentasPeriodoItem[];
 }
@@ -22,6 +24,8 @@ export interface ProductoTopItem {
   cantidad: number;
   ingresos: number;
 }
+
+export type TopProducto = ProductoTopItem;
 
 export interface ProductosTopResponse {
   items: ProductoTopItem[];
