@@ -44,5 +44,5 @@ La app queda disponible en `http://localhost:5173` (o el siguiente puerto libre)
 ---
 
 ## Video del Parcial
-[Ver Video en YouTube](https://www.youtube.com/watch?v=HCHS3oAsbC4)
+[Ver Video en YouTube](https://youtu.be/IghWtxwE6Ts)
 Complemento: https://www.youtube.com/watch?v=xzheMmXe0Uc
